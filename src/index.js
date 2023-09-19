@@ -1,17 +1,19 @@
-const { app, BrowserWindow, ipcMain } = require("electron");
+const { app, BrowserWindow, ipcMain, desktopCapturer } = require("electron");
 const path = require("path");
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
   app.quit();
 }
-
+let mainWindow;
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     webPreferences: {
+      nodeIntegration: true,
+      webSecurity: false,
       preload: path.join(__dirname, "preload.js"),
     },
   });
@@ -27,7 +29,19 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  ipcMain.handle("ping", () => "pong");
+  ipcMain.handle("ping", () => {
+    desktopCapturer
+      .getSources({ types: ["window", "screen"] })
+      .then(async (sources) => {
+        for (const source of sources) {
+          console.log(source.name);
+          if (source.name === "Entire screen" || "Screen 1") {
+            mainWindow.webContents.send("SET_SOURCE", source.id);
+            return;
+          }
+        }
+      });
+  });
   createWindow();
 });
 
