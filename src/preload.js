@@ -37,13 +37,23 @@ core.ready().then(() => {
 
 // core.discoveryKey is *not* a read capability for the core
 // It's only used to discover other peers who *might* have the core
-
+let videoCallback;
 contextBridge.exposeInMainWorld("versions", {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   ping: () => ipcRenderer.invoke("ping"),
 });
+
+const convertBlobToBase64 = (blob) =>
+  new Promise((resolve, reject) => {
+    // const reader = new FileReader();
+    // reader.onerror = reject;
+    // reader.onload = () => {
+    //   resolve(reader.result);
+    // };
+    // reader.readAsDataURL(blob);
+  });
 
 ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   console.log("SET_SOURCE");
@@ -76,8 +86,12 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
           //   ...new Uint8Array(await event.data.arrayBuffer())
           // );
           // _conn.write(data);
-          core.append(await event.data.arrayBuffer());
-          console.log("writign to conn", await event.data.arrayBuffer());
+          let blobdata = event.data;
+          blobdata = await Buffer.from(await blobdata.arrayBuffer()).toString(
+            "base64"
+          ); //convertBlobToBase64(blobdata);
+          core.append(blobdata);
+          console.log("writign to conn", blobdata);
         }
       } else {
         console.log("Not enough data");
@@ -86,7 +100,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
 
     video.srcObject = stream;
     video.play();
-    mediaRecorder.start(2000);
+    mediaRecorder.start(3000);
   } catch (e) {
     handleError(e);
   }
