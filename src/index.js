@@ -29,6 +29,12 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
+  ipcMain.handle("startRecording", () =>
+    mainWindow.webContents.send("startRecording")
+  );
+  ipcMain.handle("stopRecording", () =>
+    mainWindow.webContents.send("stopRecording")
+  );
   ipcMain.handle("ping", () => {
     desktopCapturer
       .getSources({ types: ["window", "screen"] })

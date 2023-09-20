@@ -4,11 +4,42 @@
 const { contextBridge, ipcRenderer } = require("electron");
 
 const fs = require("fs");
+const goodbye = require("graceful-goodbye");
+const b4a = require("b4a");
+const DHT = require("hyperdht");
+const Hypercore = require("hypercore");
+const Hyperswarm = require("hyperswarm");
 const { log } = require("console");
 
 // let outvid = fs.createWriteStream(`./out-stream/bbb.webm`);
 const chunks = [];
-let mediaRecorder;
+let _conn;
+const swarm = new Hyperswarm();
+goodbye(() => {
+  swarm.destroy();
+});
+
+const core = new Hypercore("./writer-storage");
+
+// core.key and core.discoveryKey will only be set after core.ready resolves
+core.ready().then(() => {
+  console.log("hypercore key:", b4a.toString(core.key, "hex"));
+
+  // Append all stdin data as separate blocks to the core
+  process.stdin.on("data", (data) => core.append(data));
+  swarm.join(core.discoveryKey);
+  swarm.on("connection", (conn) => {
+    console.log("New Connection");
+    _conn = conn;
+
+    core.replicate(conn);
+
+    // setInterval(() => {
+    //   console.log("Neww");
+    //   core.append("New Entry");
+    // }, 5000);
+  });
+});
 
 // core.discoveryKey is *not* a read capability for the core
 // It's only used to discover other peers who *might* have the core
@@ -18,8 +49,6 @@ contextBridge.exposeInMainWorld("versions", {
   chrome: () => process.versions.chrome,
   electron: () => process.versions.electron,
   ping: () => ipcRenderer.invoke("ping"),
-  startRecording: () => ipcRenderer.invoke("startRecording"),
-  stopRecording: () => ipcRenderer.invoke("stopRecording"),
 });
 
 const convertBlobToBase64 = (blob) =>
@@ -31,28 +60,6 @@ const convertBlobToBase64 = (blob) =>
     };
     reader.readAsDataURL(blob);
   });
-
-const saveRenderVideo = async () => {
-  log("saveRenderVideo");
-  const blob = new Blob(chunks, {
-    type: "video/webm; codecs=vp9",
-  });
-
-  const buffer = Buffer.from(await blob.arrayBuffer());
-
-  fs.writeFile(`./out-stream/${Date.now()}.webm`, buffer, () =>
-    console.log("video saved successfully!")
-  );
-};
-
-ipcRenderer.on("startRecording", (event, id) => {
-  log("startRecording");
-  mediaRecorder.start(3000);
-});
-ipcRenderer.on("stopRecording", () => {
-  mediaRecorder.stop();
-  saveRenderVideo();
-});
 
 ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   console.log("SET_SOURCE");
@@ -73,7 +80,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
     });
     // handleStream(stream);
 
-    mediaRecorder = new MediaRecorder(stream, {
+    const mediaRecorder = new MediaRecorder(stream, {
       mimeType: "video/webm; codecs=vp9",
     });
 
@@ -84,6 +91,37 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
     mediaRecorder.ondataavailable = async function (event) {
       if (event.data.size > 0) {
         chunks.push(event.data);
+        if (chunks.length == 10) {
+          log("saving");
+          const blob = new Blob(chunks);
+          let fr = new FileReader();
+          fr.onload = (_) => {
+            log("onload");
+            fs.writeFile(
+              `./out-stream/aaaa.webm`,
+              new Buffer(fr.result),
+              function (err) {
+                if (err) {
+                  log(err.message);
+                } else {
+                  log("done");
+                }
+              }
+            );
+          };
+          fr.readAsArrayBuffer(blob);
+        }
+        if (_conn) {
+          // let data = String.fromCharCode(
+          //   ...new Uint8Array(await event.data.arrayBuffer())
+          // );
+          // _conn.write(data);
+          let blobdata = event.data;
+          blobdata = await event.data.arrayBuffer(); //await convertBlobToBase64(blobdata); //await Buffer.from(await blobdata.arrayBuffer()).toString("base64");;
+          core.append(blobdata);
+          // outvid.write(await Buffer.from(blobdata), "binary");
+          console.log("writign to conn", blobdata);
+        }
       } else {
         console.log("Not enough data");
       }
@@ -91,6 +129,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
 
     video.srcObject = stream;
     video.play();
+    mediaRecorder.start(3000);
   } catch (e) {
     handleError(e);
   }
