@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Hello World!</title>
+    <!-- Minified version -->
+    <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+  </head>
+  <body>
+    <header>
+      <h1>🍐2🍐 Remote Desktop Application.</h1>
+    </header>
+    <main>
+      <p id="info" class="notice"></p>
+      <div class="center">
+        <button
+          id="btn_share"
+          onclick="document.getElementById('dialogue_sharekey').showModal()"
+        >
+          Share Key
+        </button>
+        <dialog id="dialogue_sharekey">
+          <h4>Share this key with other Host.</h4>
+          <p id="hyperCoreId"></p>
+        </dialog>
+        <a class="button" href="./viewer.html?remoteId=asdsadasd"
+          >Connect To Rīemote Host</a
+        >
+      </div>
+
+      <video autoplay></video>
+    </main>
+  </body>
+  <script src="./renderer.js"></script>
+</html>

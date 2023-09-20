@@ -4,26 +4,31 @@ const Hypercore = require("hypercore");
 const Hyperswarm = require("hyperswarm");
 const goodbye = require("graceful-goodbye");
 
-const swarm = new Hyperswarm();
-goodbye(() => {
-  swarm.destroy();
-});
+module.exports = class HolePunchUtil {
+  constructor(onRemoteConnection) {
+    this.seed = Math.random();
+    this.swarm = new Hyperswarm();
+    this.onRemoteConnection = onRemoteConnection;
 
-const core = new Hypercore("./writer-storage");
+    goodbye(() => {
+      this.swarm.destroy();
+    });
+  }
 
-core.ready().then(() => {
-  console.log("hypercore key:", b4a.toString(core.key, "hex"));
+  START_HYPER_CODE() {
+    return new Promise((resolve, reject) => {
+      this.hyperCore = new Hypercore(`./writer-storage/seed-${this.seed}/`);
+      this.hyperCore.ready().then(() => {
+        console.log("hypercore key:", b4a.toString(this.hyperCore.key, "hex"));
+        this.swarm.join(this.hyperCore.discoveryKey);
 
-  // Append all stdin data as separate blocks to the core
-  process.stdin.on("data", (data) => core.append(data));
-  swarm.join(core.discoveryKey);
-
-  swarm.on("connection", (conn) => {
-    console.log("New Connection");
-    core.replicate(conn);
-  });
-});
-
-module.exports = {
-  core: core,
+        this.swarm.on("connection", (conn) => {
+          console.log("New Connection");
+          this.hyperCore.replicate(conn);
+          onRemoteConnection(conn);
+        });
+        resolve(b4a.toString(this.hyperCore.key, "hex"));
+      });
+    });
+  }
 };

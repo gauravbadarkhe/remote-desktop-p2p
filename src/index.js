@@ -6,6 +6,16 @@ const {
   Menu,
 } = require("electron");
 const path = require("path");
+require("electron-reload")(path.join(__dirname, "ui/"));
+
+// try {
+//   require("electron-reloader")(module, {
+//     debug: true,
+//     watchRenderer: true,
+//   });
+// } catch (_) {
+//   console.log("Error");
+// }
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
@@ -25,7 +35,7 @@ const createWindow = () => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, "index.html"));
+  mainWindow.loadFile(path.join(__dirname, "ui/index.html"));
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
@@ -41,18 +51,30 @@ app.on("ready", () => {
   ipcMain.handle("stopRecording", () =>
     mainWindow.webContents.send("stopRecording")
   );
-  ipcMain.handle("ping", () => {
-    desktopCapturer
-      .getSources({ types: ["window", "screen"] })
-      .then(async (sources) => {
-        buildSourcesMenu(sources);
-        for (const source of sources) {
-          if (source.name === "Entire screen" || "Screen 1") {
-            mainWindow.webContents.send("SET_SOURCE", source.id);
-            return;
-          }
-        }
-      });
+
+  ipcMain.handle("startRemoteDesktop", (remoteId) =>
+    mainWindow.webContents.send("startRemoteDesktop", remoteId)
+  );
+
+  ipcMain.handle("startHostDesktop", () => {
+    mainWindow.webContents.send("startHostDesktop");
+  });
+
+  ipcMain.handle("getSourceScreens", () => {
+    return new Promise((resolve, reject) => {
+      desktopCapturer
+        .getSources({ types: ["screen"] })
+        .then(async (sources) => {
+          buildSourcesMenu(sources);
+          resolve(sources);
+          // for (const source of sources) {
+          //   if (source.name === "Entire screen" || "Screen 1") {
+          //     mainWindow.webContents.send("SET_SOURCE", source.id);
+          //     return;
+          //   }
+          // }
+        });
+    });
   });
   createWindow();
 });
