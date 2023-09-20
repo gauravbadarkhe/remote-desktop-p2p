@@ -1,4 +1,10 @@
-const { app, BrowserWindow, ipcMain, desktopCapturer } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  desktopCapturer,
+  Menu,
+} = require("electron");
 const path = require("path");
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -39,8 +45,8 @@ app.on("ready", () => {
     desktopCapturer
       .getSources({ types: ["window", "screen"] })
       .then(async (sources) => {
+        buildSourcesMenu(sources);
         for (const source of sources) {
-          console.log(source.name);
           if (source.name === "Entire screen" || "Screen 1") {
             mainWindow.webContents.send("SET_SOURCE", source.id);
             return;
@@ -50,6 +56,24 @@ app.on("ready", () => {
   });
   createWindow();
 });
+
+const buildSourcesMenu = (sources) => {
+  const template = [
+    {
+      label: "Sources",
+      submenu: sources.map((source) => {
+        return {
+          label: source.name,
+          id: source.id,
+          click: () => mainWindow.webContents.send("SET_SOURCE", source.id),
+        };
+      }),
+    },
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+};
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits
@@ -67,6 +91,3 @@ app.on("activate", () => {
     createWindow();
   }
 });
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

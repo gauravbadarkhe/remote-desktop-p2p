@@ -2,17 +2,21 @@
 // https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
 
 const { contextBridge, ipcRenderer } = require("electron");
+const { core } = require("./holepunchUtil");
 
 const fs = require("fs");
-const { log } = require("console");
+const { log, error } = require("console");
+
+const b4a = require("b4a");
+const DHT = require("hyperdht");
+const Hypercore = require("hypercore");
+const Hyperswarm = require("hyperswarm");
+const StreamHandler = require("./core/streamHanderler");
 
 // let outvid = fs.createWriteStream(`./out-stream/bbb.webm`);
 const chunks = [];
-let mediaRecorder;
+let streamHandler;
 
-// core.discoveryKey is *not* a read capability for the core
-// It's only used to discover other peers who *might* have the core
-let videoCallback;
 contextBridge.exposeInMainWorld("versions", {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
@@ -22,85 +26,39 @@ contextBridge.exposeInMainWorld("versions", {
   stopRecording: () => ipcRenderer.invoke("stopRecording"),
 });
 
-const convertBlobToBase64 = (blob) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = reject;
-    reader.onload = () => {
-      resolve(reader.result);
-    };
-    reader.readAsDataURL(blob);
-  });
-
-const saveRenderVideo = async () => {
-  log("saveRenderVideo");
-  const blob = new Blob(chunks, {
-    type: "video/webm; codecs=vp9",
-  });
-
-  const buffer = Buffer.from(await blob.arrayBuffer());
-
-  fs.writeFile(`./out-stream/${Date.now()}.webm`, buffer, () =>
-    console.log("video saved successfully!")
-  );
-};
-
 ipcRenderer.on("startRecording", (event, id) => {
-  log("startRecording");
-  mediaRecorder.start(3000);
+  streamHandler.START(100);
 });
-ipcRenderer.on("stopRecording", () => {
-  mediaRecorder.stop();
-  saveRenderVideo();
+ipcRenderer.on("stopRecording", async () => {
+  await streamHandler.DESTORY();
+  streamHandler = null;
 });
 
 ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   console.log("SET_SOURCE");
   try {
+    if (streamHandler) {
+      await streamHandler.DESTORY();
+    }
     const video = document.querySelector("video");
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        mandatory: {
-          chromeMediaSource: "desktop",
-          chromeMediaSourceId: sourceId,
-          minWidth: 1280,
-          maxWidth: 1280,
-          minHeight: 720,
-          maxHeight: 720,
-        },
-      },
-    });
-    // handleStream(stream);
+    streamHandler = new StreamHandler(sourceId);
 
-    mediaRecorder = new MediaRecorder(stream, {
-      mimeType: "video/webm; codecs=vp9",
-    });
+    const stream = await streamHandler.CREATE_STREAM(sourceId);
 
-    mediaRecorder.onerror = (err) => console.log("onerror", err);
-    mediaRecorder.onstart = (s) => console.log("onstart", s);
-    mediaRecorder.onstop = (ss) => console.log("onstop", ss);
-
-    mediaRecorder.ondataavailable = async function (event) {
-      if (event.data.size > 0) {
-        chunks.push(event.data);
-      } else {
-        console.log("Not enough data");
+    const mediaSource = await streamHandler.CREATE_MEDIA_SOURCE(
+      async (sourceBuffer, blob) => {
+        let arrBuff = await blob.arrayBuffer();
+        const encodedToBase64 = Buffer.from(arrBuff).toString("base64");
+        chunks.push(encodedToBase64);
+        core.append(encodedToBase64);
+        sourceBuffer.appendBuffer(arrBuff);
       }
-    };
+    );
 
-    video.srcObject = stream;
-    video.play();
+    video.crossOrigin = "anonymous";
+    video.src = URL.createObjectURL(mediaSource);
+    await video.play();
   } catch (e) {
-    handleError(e);
+    console.error(e);
   }
 });
-
-function handleStream(stream) {
-  video.srcObject = stream;
-  video.onloadedmetadata = (e) => video.play();
-}
-
-function handleError(e) {
-  console.log(e);
-}
