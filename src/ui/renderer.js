@@ -14,9 +14,9 @@ btn_share.addEventListener("click", async () =>
   window.versions.startHostDesktop()
 );
 
-startRemoteViewer.addEventListener("click", () => redirectToViwer());
-
-const startRemoteHostConnection = (remoteId) => {
-  console.log("remoteId", remoteId);
-  window.versions.connetToRemoteHost(`${remoteId}`, "remoteVideoPlayer");
+const startRemoteHostConnection = () => {
+  console.log("remoteId", remoteHostKey.value);
+  window.versions.connetToRemoteHost(remoteHostKey.value, "remoteVideoPlayer");
 };
+
+startRemoteViewer.addEventListener("click", () => startRemoteHostConnection());

@@ -35,6 +35,19 @@ contextBridge.exposeInMainWorld("versions", {
   },
 });
 
+ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId, videoElementId) => {
+  const video = document.querySelector("video");
+  const mediaSource = new MediaSource();
+  video.src = URL.createObjectURL(mediaSource);
+
+  mediaSource.addEventListener("sourceopen", async (e) => {
+    console.log("mediaSource.sourceopen");
+    const videoBuffer = mediaSource.addSourceBuffer(CODECS);
+
+    await handelDelayedStream(remoteId, videoBuffer);
+  });
+});
+
 // Make this as a pure broadcaster
 ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   console.log("SET_SOURCE");
@@ -118,11 +131,11 @@ async function handelDelayedStream(hypercorekey, videoSource) {
   await new HolePunchUtil().CONNECT_TO_HYPER_CORE(
     hypercorekey,
     (base64encoding) => {
-      // videoSource.appendBuffer(base64encoding)
+      //   videoSource.appendBuffer(base64encoding);
       const buffer = Buffer.from(base64encoding, "base64");
       const blob = new Blob([buffer], { type: CODECS });
       const fileReader = new FileReader();
-      fileReader.onloadend = () => videoSource.appendBuffer(fileReader.result);
+      fileReader.onloadend = () => videoSource.appendBuffer(base64encoding);
 
       fileReader.readAsArrayBuffer(blob);
     }
