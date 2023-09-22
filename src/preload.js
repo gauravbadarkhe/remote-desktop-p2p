@@ -110,7 +110,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
           mediaRecorder.requestData();
         }, 100);
 
-        await handelDelayedStream(coreKey, videoBuffer);
+        // await handelDelayedStream(coreKey, videoBuffer);
       },
       false
     );

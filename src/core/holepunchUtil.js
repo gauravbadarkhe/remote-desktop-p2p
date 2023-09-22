@@ -60,7 +60,7 @@ module.exports = class HolePunchUtil {
       })) {
         position++;
 
-        console.log(`Block ${block}`);
+        // console.log(`Block ${position}`);
 
         newDataCallback(block.toString(), position);
       }
