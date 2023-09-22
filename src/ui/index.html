@@ -5,6 +5,31 @@
     <title>Hello World!</title>
     <!-- Minified version -->
     <link rel="stylesheet" href="https://cdn.simplecss.org/simple.min.css" />
+    <style>
+      .video-container {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+      }
+      .video-container video {
+        /* Make video to at least 100% wide and tall */
+        min-width: 100%;
+        min-height: 100%;
+
+        /* Setting width & height to auto prevents the browser from stretching or squishing the video */
+        width: auto;
+        height: auto;
+
+        /* Center the video */
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+      }
+    </style>
   </head>
   <body>
     <header>
@@ -23,12 +48,21 @@
           <h4>Share this key with other Host.</h4>
           <p id="hyperCoreId"></p>
         </dialog>
-        <a class="button" href="./viewer.html?remoteId=asdsadasd"
-          >Connect To Rīemote Host</a
+
+        <button
+          id="btn_connect"
+          onclick="document.getElementById('dialogue_connect_to_host').showModal()"
         >
+          Connect To Rīemote Host
+        </button>
+        <dialog id="dialogue_connect_to_host">
+          <h4>Pls Enter Remote Host Key</h4>
+          <input type="text" id="remoteHostKey" />
+          <button id="redirectToViwer">Start Remote Connection</button>
+        </dialog>
       </div>
 
-      <video autoplay></video>
+      <video id="remoteVideoPlayer" autoplay></video>
     </main>
   </body>
   <script src="./renderer.js"></script>

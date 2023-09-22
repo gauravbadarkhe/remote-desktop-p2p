@@ -6,7 +6,7 @@ const {
   Menu,
 } = require("electron");
 const path = require("path");
-require("electron-reload")(path.join(__dirname, "ui/"));
+// require("electron-reload")(path.join(__dirname, "ui/"));
 
 // try {
 //   require("electron-reloader")(module, {
@@ -45,37 +45,30 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  ipcMain.handle("startRecording", () =>
-    mainWindow.webContents.send("startRecording")
-  );
-  ipcMain.handle("stopRecording", () =>
-    mainWindow.webContents.send("stopRecording")
-  );
-
-  ipcMain.handle("startRemoteDesktop", (remoteId) =>
-    mainWindow.webContents.send("startRemoteDesktop", remoteId)
-  );
+  ipcMain.handle("connetToRemoteHost", (event, remoteId, videoElementId) => {
+    console.log(remoteId, videoElementId);
+    mainWindow.webContents.send("CONNECT_TO_HOST", remoteId, videoElementId);
+  });
 
   ipcMain.handle("startHostDesktop", () => {
-    mainWindow.webContents.send("startHostDesktop");
-  });
+    mainWindow.webContents.send("START_HOST_DESKTOP");
+    desktopCapturer.getSources({ types: ["screen"] }).then(async (sources) => {
+      // buildSourcesMenu(sources);
 
-  ipcMain.handle("getSourceScreens", () => {
-    return new Promise((resolve, reject) => {
-      desktopCapturer
-        .getSources({ types: ["screen"] })
-        .then(async (sources) => {
-          buildSourcesMenu(sources);
-          resolve(sources);
-          // for (const source of sources) {
-          //   if (source.name === "Entire screen" || "Screen 1") {
-          //     mainWindow.webContents.send("SET_SOURCE", source.id);
-          //     return;
-          //   }
-          // }
-        });
+      for (const source of sources) {
+        if (source.name === "Entire screen" || "Screen 1") {
+          mainWindow.webContents.send("SET_SOURCE", source.id);
+          return;
+        }
+      }
     });
   });
+
+  // ipcMain.handle("getSourceScreens", () => {
+  //   return new Promise((resolve, reject) => {
+
+  //   });
+  // });
   createWindow();
 });
 

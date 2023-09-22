@@ -44,6 +44,7 @@ node_modules/
 out-stream/
 jspm_packages/
 writer-storage/
+reader-storage/
 
 # Snowpack dependency directory (https://snowpack.dev/)
 web_modules/
