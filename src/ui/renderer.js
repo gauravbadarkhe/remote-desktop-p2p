@@ -7,7 +7,7 @@ const startRemoteViewer = document.getElementById("redirectToViwer");
 information.innerText = `This app is using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`;
 
 const redirectToViwer = () => {
-  startRemoteHostConnection(remoteHostKey.value);
+  window.location.href = "./viewer.html?remoteId=" + remoteHostKey.value;
 };
 
 btn_share.addEventListener("click", async () =>
@@ -19,4 +19,4 @@ const startRemoteHostConnection = () => {
   window.versions.connetToRemoteHost(remoteHostKey.value, "remoteVideoPlayer");
 };
 
-startRemoteViewer.addEventListener("click", () => startRemoteHostConnection());
+startRemoteViewer.addEventListener("click", () => redirectToViwer());

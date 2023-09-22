@@ -1,8 +1,8 @@
 const urlParams = new URLSearchParams(window.location.search);
 const remoteId = urlParams.get("remoteId");
-console.log("remoteId", remoteId);
 
 const StartRemoteHostConnection = () => {
+  console.log("remoteId", remoteId);
   window.versions.connetToRemoteHost(remoteId, "remoteVideoPlayer");
 };
-start();
+StartRemoteHostConnection();
