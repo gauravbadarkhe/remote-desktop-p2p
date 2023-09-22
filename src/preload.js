@@ -87,6 +87,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
         p.innerHTML += coreKey;
 
         const videoBuffer = mediaSource.addSourceBuffer(CODECS);
+        handelDelayedStream(coreKey, videoBuffer);
         mediaRecorder.ondataavailable = async function (event) {
           if (event.data.size > 0) {
             let fileReader = new FileReader();
@@ -104,13 +105,11 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
           }
         };
 
-        mediaRecorder.start();
+        mediaRecorder.start(1000);
 
-        setInterval(() => {
-          mediaRecorder.requestData();
-        }, 100);
-
-        await handelDelayedStream(coreKey, videoBuffer);
+        // setInterval(() => {
+        //   mediaRecorder.requestData();
+        // }, 1000);
       },
       false
     );
@@ -135,7 +134,7 @@ async function handelDelayedStream(hypercorekey, videoSource) {
       const buffer = Buffer.from(base64encoding, "base64");
       const blob = new Blob([buffer], { type: CODECS });
       const fileReader = new FileReader();
-      fileReader.onloadend = () => videoSource.appendBuffer(base64encoding);
+      fileReader.onloadend = () => videoSource.appendBuffer(fileReader.result);
 
       fileReader.readAsArrayBuffer(blob);
     }

@@ -48,7 +48,7 @@ module.exports = class HolePunchUtil {
       const foundPeers = core.findingPeers();
       this.swarm.join(core.discoveryKey);
       this.swarm.on("connection", (conn) => core.replicate(conn));
-      await this.swarm.flush();
+      // await this.swarm.flush();
       foundPeers();
       await core.update();
       resolve();
@@ -60,7 +60,7 @@ module.exports = class HolePunchUtil {
       })) {
         position++;
 
-        console.log(`Block ${block}`);
+        console.log(`Block ${block.toString()}`);
 
         newDataCallback(block.toString(), position);
       }
