@@ -9,10 +9,25 @@ module.exports = class HolePunchUtil {
     this.seed = Math.random();
     this.swarm = new Hyperswarm();
     this.hyperCore;
+    this.p2pServer;
 
     goodbye(() => {
       this.swarm.destroy();
     });
+  }
+
+  CREATE_SERVER(onConnection) {
+    const publicKey = b4a.from(serverKey, "hex");
+    const dht = new DHT();
+    this.p2pServer = dht.connect(publicKey);
+    conn.once("open", (connection) => {
+      onConnection(connection);
+      console.log(`Got Connection`);
+    });
+    return {
+      p2pServer: this.p2pServer,
+      publicKey: publicKey,
+    };
   }
 
   START_HYPER_CORE = (onRemoteConnection) => {
@@ -48,7 +63,7 @@ module.exports = class HolePunchUtil {
       const foundPeers = core.findingPeers();
       this.swarm.join(core.discoveryKey);
       this.swarm.on("connection", (conn) => core.replicate(conn));
-      // await this.swarm.flush();
+      await this.swarm.flush();
       foundPeers();
       await core.update();
       resolve();

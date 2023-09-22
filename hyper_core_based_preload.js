@@ -11,7 +11,7 @@ const DHT = require("hyperdht");
 const Hypercore = require("hypercore");
 const Hyperswarm = require("hyperswarm");
 const StreamHandler = require("./core/streamHanderler");
-const P2PUtils = require("./core/p2pUtils");
+const HolePunchUtil = require("./core/holepunchUtil");
 const RemoteHostRenderer = require("./core/remoteHostRenderer");
 const { CODECS } = require("./core/constnats");
 
@@ -73,14 +73,14 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
       mimeType: CODECS,
     });
 
+    const holePunchUtil = new HolePunchUtil();
+
     mediaSource.addEventListener(
       "sourceopen",
       async (e) => {
         console.log("mediaSource.sourceopen");
 
-        const p2p = new P2PUtils();
-        p2p.createServer();
-        p2p.on(P2PUtils.P2PEvents);
+        const coreKey = await holePunchUtil.START_HYPER_CORE(() => {});
 
         const p = document.getElementById("hyperCoreId");
         console.log(p);
@@ -99,8 +99,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
               // videoBuffer.appendBuffer(arrayBuffer);
               // handelDelayedStream(videoBuffer, encodedToBase64);
               console.log("Data In");
-              // holePunchUtil.SEND_DATA(encodedToBase64);
-              p2p.sendMessage(encodedToBase64);
+              holePunchUtil.SEND_DATA(encodedToBase64);
             };
             fileReader.readAsArrayBuffer(event.data);
           }
