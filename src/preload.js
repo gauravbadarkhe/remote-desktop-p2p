@@ -105,7 +105,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
           }
         };
 
-        mediaRecorder.start(1000);
+        mediaRecorder.start(500);
 
         // setInterval(() => {
         //   mediaRecorder.requestData();
