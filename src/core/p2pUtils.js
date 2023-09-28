@@ -4,6 +4,7 @@ const DHT = require("hyperdht");
 
 module.exports = class P2PUtils extends EventEmitter {
   constructor() {
+    super();
     this.dht = new DHT();
     this.keyPair = DHT.keyPair();
     this.server,
@@ -33,39 +34,36 @@ module.exports = class P2PUtils extends EventEmitter {
   }
 
   createServer() {
-    this.server = dht.createServer((conn) => {
+    this.server = this.dht.createServer((conn) => {
       console.log("New Connection!");
       this.clientConnection = conn;
       this.emit(this.P2PEvents.NewClientConnected, conn);
     });
 
-    server
-      .listen(this.keyPair)
-      .then(() => {
-        console.log(
-          `Listening on: ${b4a.toString(this.keyPair.publicKey, "hex")}`
-        );
-        this.emit(this.P2PEvents.ServerStarted, this.keyPair.publicKey);
-        this.role = "Server";
-        resolve(this.keyPair.publicKey);
-      })
-      .catch((err) => {
-        reject(err);
-      });
+    this.server.listen(this.keyPair).then(() => {
+      console.log(
+        `Listening on: ${b4a.toString(this.keyPair.publicKey, "hex")}`
+      );
+      this.emit(
+        this.P2PEvents.ServerStarted,
+        b4a.toString(this.keyPair.publicKey, "hex")
+      );
+      this.role = "Server";
+    });
   }
 
-  createClient(remoteServerKey, onMessageCallback) {
+  createClient(remoteServerKey) {
+    console.log("Connection To Server", remoteServerKey);
     const publicKey = b4a.from(remoteServerKey, "hex");
-
-    this.client = dht.connect(publicKey);
+    this.client = this.dht.connect(publicKey);
     this.client.once("open", () => {
-      this.emit(this.P2PEvents.ConnectedToServer);
       this.role = "Client";
+      this.emit(this.P2PEvents.ConnectedToServer);
     });
 
     this.client.on("data", (d) => {
-        this.emit(this.)
-      onMessageCallback(d.toString());
+      this.emit(this.P2PEvents.OnMessage, d.toString());
+      // onMessageCallback(d.toString());
     });
   }
 };

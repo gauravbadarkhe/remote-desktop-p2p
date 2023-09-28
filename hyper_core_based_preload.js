@@ -10,10 +10,10 @@ const b4a = require("b4a");
 const DHT = require("hyperdht");
 const Hypercore = require("hypercore");
 const Hyperswarm = require("hyperswarm");
-const StreamHandler = require("./core/streamHanderler");
-const HolePunchUtil = require("./core/holepunchUtil");
-const RemoteHostRenderer = require("./core/remoteHostRenderer");
-const { CODECS } = require("./core/constnats");
+const StreamHandler = require("./src/core/streamHanderler");
+const HolePunchUtil = require("./src/core/holepunchUtil");
+const RemoteHostRenderer = require("./src/core/remoteHostRenderer");
+const { CODECS } = require("./src/core/constnats");
 
 // let outvid = fs.createWriteStream(`./out-stream/bbb.webm`);
 const chunks = [];

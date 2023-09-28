@@ -1,1 +1,1 @@
-module.exports.CODECS = "video/webm;codecs=vp9";
+module.exports.CODECS = "video/webm;codecs=vp9,opus";

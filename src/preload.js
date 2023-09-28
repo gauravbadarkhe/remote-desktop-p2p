@@ -3,23 +3,14 @@
 
 const { contextBridge, ipcRenderer } = require("electron");
 
-const fs = require("fs");
-const { log, error } = require("console");
-
-const b4a = require("b4a");
-const DHT = require("hyperdht");
-const Hypercore = require("hypercore");
-const Hyperswarm = require("hyperswarm");
-const StreamHandler = require("./core/streamHanderler");
 const P2PUtils = require("./core/p2pUtils");
-const RemoteHostRenderer = require("./core/remoteHostRenderer");
 const { CODECS } = require("./core/constnats");
+const RoomUtils = require("./core/RoomUtils");
+const StreamHandler = require("./core/streamHanderler");
+const VideoRenderer = require("./core/videoRenderer");
 
 // let outvid = fs.createWriteStream(`./out-stream/bbb.webm`);
 const chunks = [];
-let remoteConnection;
-let streamHandler;
-let remoteHostRenderer;
 contextBridge.exposeInMainWorld("versions", {
   node: () => process.versions.node,
   chrome: () => process.versions.chrome,
@@ -35,109 +26,68 @@ contextBridge.exposeInMainWorld("versions", {
   },
 });
 
-ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId, videoElementId) => {
-  const video = document.querySelector("video");
-  const mediaSource = new MediaSource();
-  video.src = URL.createObjectURL(mediaSource);
-
-  mediaSource.addEventListener("sourceopen", async (e) => {
-    console.log("mediaSource.sourceopen");
-    const videoBuffer = mediaSource.addSourceBuffer(CODECS);
-
-    await handelDelayedStream(remoteId, videoBuffer);
-  });
+ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId) => {
+  connectToHost(remoteId);
 });
 
-// Make this as a pure broadcaster
+// function connectToHost(remoteId) {
+//   const video = document.querySelector("video");
+//   const mediaSource = new MediaSource();
+//   video.src = URL.createObjectURL(mediaSource);
+
+//   mediaSource.addEventListener("sourceopen", async (e) => {
+//     console.log("mediaSource.sourceopen");
+//     const videoBuffer = mediaSource.addSourceBuffer(CODECS);
+//     const p2p = new P2PUtils();
+//     p2p.createClient(remoteId);
+//     p2p.on(p2p.P2PEvents.OnMessage, (data) => {
+//       handelDelayedStream(data, videoBuffer);
+//     });
+//   });
+// }
+
+// // Make this as a pure broadcaster
 ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
-  console.log("SET_SOURCE");
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        mandatory: {
-          chromeMediaSource: "desktop",
-          chromeMediaSourceId: sourceId,
-          minWidth: 1280,
-          maxWidth: 1280,
-          minHeight: 720,
-          maxHeight: 720,
-        },
-      },
-    });
-    const video = document.querySelector("video");
-    const mediaSource = new MediaSource();
-    video.src = URL.createObjectURL(mediaSource);
+  console.log("Set Source");
 
-    const mediaRecorder = new MediaRecorder(stream, {
-      mimeType: CODECS,
-    });
+  const sednderRoomUtils = new RoomUtils();
+  const roomId = await sednderRoomUtils.initRoom();
+  sednderRoomUtils.start();
+  console.log(`Joined Room ${roomId}`);
+  const streamHandeler = new StreamHandler(sourceId);
+  const video = document.querySelector("video");
 
-    mediaSource.addEventListener(
-      "sourceopen",
-      async (e) => {
-        console.log("mediaSource.sourceopen");
+  const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
 
-        const p2p = new P2PUtils();
-        p2p.createServer();
-        p2p.on(P2PUtils.P2PEvents);
+  const reciver = new RoomUtils();
+  reciver.start();
+  await reciver.initRoom(roomId);
 
-        const p = document.getElementById("hyperCoreId");
-        console.log(p);
-        p.innerHTML += coreKey;
+  reciver.on("data", ({ name, data }) => {
+    if (!videoBuffer.updating) {
+      // handelDelayedStream(data.toString(), videoBuffer);
+      videoBuffer.appendBuffer(data);
+    }
+  });
 
-        const videoBuffer = mediaSource.addSourceBuffer(CODECS);
-        handelDelayedStream(coreKey, videoBuffer);
-        mediaRecorder.ondataavailable = async function (event) {
-          if (event.data.size > 0) {
-            let fileReader = new FileReader();
-            let arrayBuffer;
-            fileReader.onloadend = () => {
-              arrayBuffer = fileReader.result;
-              const encodedToBase64 =
-                Buffer.from(arrayBuffer).toString("base64");
-              // videoBuffer.appendBuffer(arrayBuffer);
-              // handelDelayedStream(videoBuffer, encodedToBase64);
-              console.log("Data In");
-              // holePunchUtil.SEND_DATA(encodedToBase64);
-              p2p.sendMessage(encodedToBase64);
-            };
-            fileReader.readAsArrayBuffer(event.data);
-          }
-        };
+  const stream = await streamHandeler.CREATE_STREAM(async (newData) => {
+    // console.log("New Data", newData);
+    const fileReader = new FileReader();
+    fileReader.onloadend = () => {
+      sednderRoomUtils.sendDataToAllConnections(Buffer.from(fileReader.result));
+    };
+    fileReader.readAsArrayBuffer(newData);
+  });
 
-        mediaRecorder.start(500);
-
-        // setInterval(() => {
-        //   mediaRecorder.requestData();
-        // }, 1000);
-      },
-      false
-    );
-
-    mediaRecorder.onerror = (err) => console.log("mediaRecorder.onerror", err);
-    mediaRecorder.onstart = (s) => console.log("mediaRecorder.onstart", s);
-    mediaRecorder.onstop = (ss) => console.log("mediaRecorder.onstop", ss);
-
-    // video.crossOrigin = "anonymous";
-    // video.src = URL.createObjectURL(mediaSource);
-    // await video.play();
-  } catch (e) {
-    console.error(e);
-  }
+  streamHandeler.START(500);
 });
 
-async function handelDelayedStream(hypercorekey, videoSource) {
-  await new HolePunchUtil().CONNECT_TO_HYPER_CORE(
-    hypercorekey,
-    (base64encoding) => {
-      //   videoSource.appendBuffer(base64encoding);
-      const buffer = Buffer.from(base64encoding, "base64");
-      const blob = new Blob([buffer], { type: CODECS });
-      const fileReader = new FileReader();
-      fileReader.onloadend = () => videoSource.appendBuffer(fileReader.result);
+async function handelDelayedStream(base64encoding, videoSource) {
+  // videoSource.appendBuffer(base64encoding);
+  const buffer = Buffer.from(base64encoding, "base64");
+  const blob = new Blob([buffer], { type: CODECS });
+  const fileReader = new FileReader();
+  fileReader.onloadend = () => videoSource.appendBuffer(fileReader.result);
 
-      fileReader.readAsArrayBuffer(blob);
-    }
-  );
+  fileReader.readAsArrayBuffer(blob);
 }

@@ -2,33 +2,30 @@ const { CODECS } = require("./constnats");
 
 module.exports = class StreamHandler {
   constructor(sourceId) {
-    this.sourceId = sourceId;
+    this.sourceId = null;
     this.stream = null;
-
     this.mediaRecorder = null;
     this.sourceBuffer = null;
     this.recordingIntervel = null;
   }
 
-  CREATE_STREAM = async (sourceId) => {
+  CREATE_STREAM = async (ondataCallback) => {
     this.stream = await navigator.mediaDevices.getUserMedia({
-      audio: false,
-      video: {
-        mandatory: {
-          chromeMediaSource: "desktop",
-          chromeMediaSourceId: sourceId,
-          minWidth: 1280,
-          maxWidth: 1280,
-          minHeight: 720,
-          maxHeight: 720,
-        },
-      },
+      audio: true,
+      video: this.sourceId
+        ? {
+            mandatory: {
+              chromeMediaSource: "desktop",
+              chromeMediaSourceId: sourceId,
+              minWidth: 1280,
+              maxWidth: 1280,
+              minHeight: 720,
+              maxHeight: 720,
+            },
+          }
+        : true,
     });
 
-    return this.stream;
-  };
-
-  CREATE_MEDIA_RECORDER = async (onDataAvalible) => {
     this.mediaRecorder = new MediaRecorder(this.stream, {
       mimeType: CODECS,
     });
@@ -38,24 +35,20 @@ module.exports = class StreamHandler {
     this.mediaRecorder.onstart = (s) => console.log("mediaRecorder.onstart", s);
     this.mediaRecorder.onstop = (ss) => console.log("mediaRecorder.onstop", ss);
 
-    this.mediaRecorder.ondataavailable = async function (event) {
+    this.mediaRecorder.ondataavailable = (event) => {
       if (event.data.size > 0) {
-        console.log("blobtype", event.data);
-        // console.log(` mediaRecorder.ondataavailable: ${event.data.size}`);
-        onDataAvalible(event.data);
+        ondataCallback(event.data);
       }
     };
 
-    return this.mediaRecorder;
+    console.log(this.stream);
+    return;
   };
 
-  START = (intervel = 3000) => {
-    console.log("Stream handler : Start");
-    this.mediaRecorder.start(intervel);
-    // this.recordingIntervel = setInterval(() => {
-    //   this.mediaRecorder.start(100);
-    // }, intervel);
-  };
+  START(recordingIntervel = 1000) {
+    this.recordingIntervel = recordingIntervel;
+    this.mediaRecorder.start(this.recordingIntervel);
+  }
 
   DESTORY = () => {
     return new Promise((resolve, reject) => {
