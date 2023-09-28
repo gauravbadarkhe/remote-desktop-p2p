@@ -30,21 +30,21 @@ ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId) => {
   connectToHost(remoteId);
 });
 
-// function connectToHost(remoteId) {
-//   const video = document.querySelector("video");
-//   const mediaSource = new MediaSource();
-//   video.src = URL.createObjectURL(mediaSource);
+async function connectToHost(remoteId) {
+  const video = document.querySelector("video");
+  const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
 
-//   mediaSource.addEventListener("sourceopen", async (e) => {
-//     console.log("mediaSource.sourceopen");
-//     const videoBuffer = mediaSource.addSourceBuffer(CODECS);
-//     const p2p = new P2PUtils();
-//     p2p.createClient(remoteId);
-//     p2p.on(p2p.P2PEvents.OnMessage, (data) => {
-//       handelDelayedStream(data, videoBuffer);
-//     });
-//   });
-// }
+  const reciver = new RoomUtils();
+  reciver.start();
+  await reciver.initRoom(remoteId);
+
+  reciver.on("data", ({ name, data }) => {
+    if (!videoBuffer.updating) {
+      // handelDelayedStream(data.toString(), videoBuffer);
+      videoBuffer.appendBuffer(data);
+    }
+  });
+}
 
 // // Make this as a pure broadcaster
 ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
@@ -55,7 +55,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   sednderRoomUtils.start();
   console.log(`Joined Room ${roomId}`);
   const streamHandeler = new StreamHandler(sourceId);
-  const video = document.querySelector("video");
+  const video = document.getElementById("remoteVideo");
 
   const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
 
@@ -78,6 +78,9 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
     };
     fileReader.readAsArrayBuffer(newData);
   });
+
+  const localVideo = document.getElementById("localVideo");
+  localVideo.srcObject = stream;
 
   streamHandeler.START(500);
 });

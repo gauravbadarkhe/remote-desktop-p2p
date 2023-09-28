@@ -7,7 +7,7 @@ const startRemoteViewer = document.getElementById("redirectToViwer");
 information.innerText = `This app is using Chrome (v${versions.chrome()}), Node.js (v${versions.node()}), and Electron (v${versions.electron()})`;
 
 const redirectToViwer = () => {
-  window.location.href = "chrome://media-internals/"; //"./viewer.html?remoteId=" + remoteHostKey.value;
+  window.location.href = "./viewer.html?remoteId=" + remoteHostKey.value;
 };
 
 btn_share.addEventListener("click", async () =>

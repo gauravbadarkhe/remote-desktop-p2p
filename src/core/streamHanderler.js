@@ -42,7 +42,7 @@ module.exports = class StreamHandler {
     };
 
     console.log(this.stream);
-    return;
+    return this.stream;
   };
 
   START(recordingIntervel = 1000) {
