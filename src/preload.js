@@ -52,8 +52,11 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   console.log("Set Source");
 
   const sednderRoomUtils = new RoomUtils();
-  const roomId = await sednderRoomUtils.initRoom();
   sednderRoomUtils.start();
+  const roomId = await sednderRoomUtils.initRoom(
+    "918a42449cddfd27fca9df27677415c238310356edc1f6d060e512a8dbb28528"
+  );
+
   console.log(`Joined Room ${roomId}`);
   const streamHandeler = new StreamHandler();
 
