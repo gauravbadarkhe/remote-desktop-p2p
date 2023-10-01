@@ -10,6 +10,7 @@ const StreamHandler = require("./core/streamHanderler");
 const VideoRenderer = require("./core/videoRenderer");
 
 // let outvid = fs.createWriteStream(`./out-stream/bbb.webm`);
+const currectPeers = {};
 const chunks = [];
 contextBridge.exposeInMainWorld("versions", {
   node: () => process.versions.node,
@@ -54,21 +55,40 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   const roomId = await sednderRoomUtils.initRoom();
   sednderRoomUtils.start();
   console.log(`Joined Room ${roomId}`);
-  const streamHandeler = new StreamHandler(sourceId);
-  const video = document.getElementById("remoteVideo");
+  const streamHandeler = new StreamHandler();
 
-  const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
+  sednderRoomUtils.on("newconnection", async (remoteId) => {
+    console.log("New Connection");
+    const video = document.getElementById("remoteVideo");
 
-  const reciver = new RoomUtils();
-  reciver.start();
-  await reciver.initRoom(roomId);
-
-  reciver.on("data", ({ name, data }) => {
-    if (!videoBuffer.updating) {
-      // handelDelayedStream(data.toString(), videoBuffer);
-      videoBuffer.appendBuffer(data);
-    }
+    const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
+    currectPeers[remoteId] = {
+      videoBuffer: videoBuffer,
+      videoElement: video,
+    };
+    sednderRoomUtils.on("data", ({ name, data }) => {
+      console.log("Data");
+      if (!videoBuffer.updating) {
+        // handelDelayedStream(data.toString(), videoBuffer);
+        videoBuffer.appendBuffer(data);
+      }
+    });
   });
+
+  // const video = document.getElementById("remoteVideo");
+
+  // const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
+
+  // const reciver = new RoomUtils();
+  // reciver.start();
+  // await reciver.initRoom(roomId);
+
+  // reciver.on("data", ({ name, data }) => {
+  //   if (!videoBuffer.updating) {
+  //     // handelDelayedStream(data.toString(), videoBuffer);
+  //     videoBuffer.appendBuffer(data);
+  //   }
+  // });
 
   const stream = await streamHandeler.CREATE_STREAM(async (newData) => {
     // console.log("New Data", newData);

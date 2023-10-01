@@ -31,7 +31,10 @@ module.exports = class RoomUtils extends EventEmitter {
       console.log(`New Peer COnnected  :${name}`);
       this.conns.push(conn);
       conn.on("error", (err) => console.error(err));
-      conn.once("close", () => this.conns.splice(this.conns.indexOf(conn), 1));
+      conn.once("close", () => {
+        this.conns.splice(this.conns.indexOf(conn), 1);
+        this.emit("close", name);
+      });
       conn.on("data", (data) => {
         // console.log(`${name}: ${data}`);
         this.emit("data", { name: name, data: data });
@@ -40,7 +43,7 @@ module.exports = class RoomUtils extends EventEmitter {
   }
 
   sendDataToAllConnections(data) {
-    console.log(`Sending data to ${this.conns.length} conns`, data);
+    console.log(`Sending data to ${this.conns.length} conns`);
     for (const conn of this.conns) {
       conn.write(data);
     }

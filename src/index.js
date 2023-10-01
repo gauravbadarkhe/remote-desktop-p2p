@@ -56,6 +56,7 @@ app.on("ready", () => {
       // buildSourcesMenu(sources);
 
       for (const source of sources) {
+        console.log(source);
         if (source.name === "Entire screen" || "Screen 1") {
           mainWindow.webContents.send("SET_SOURCE", source.id);
           return;
