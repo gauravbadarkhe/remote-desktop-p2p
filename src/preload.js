@@ -51,24 +51,27 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   console.log("Set Source");
 
   const sednderRoomUtils = new RoomUtils();
-  const roomId = await sednderRoomUtils.initRoom();
   sednderRoomUtils.start();
+  const roomId = await sednderRoomUtils.initRoom(
+    "918a42449cddfd27fca9df27677415c238310356edc1f6d060e512a8dbb28528"
+  );
+
   console.log(`Joined Room ${roomId}`);
   const streamHandeler = new StreamHandler(sourceId);
-  const video = document.getElementById("remoteVideo");
+  // const video = document.getElementById("remoteVideo");
 
-  const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
+  // const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
 
-  const reciver = new RoomUtils();
-  reciver.start();
-  await reciver.initRoom(roomId);
+  // const reciver = new RoomUtils();
+  // reciver.start();
+  // await reciver.initRoom(roomId);
 
-  reciver.on("data", ({ name, data }) => {
-    if (!videoBuffer.updating) {
-      // handelDelayedStream(data.toString(), videoBuffer);
-      videoBuffer.appendBuffer(data);
-    }
-  });
+  // reciver.on("data", ({ name, data }) => {
+  //   if (!videoBuffer.updating) {
+  //     // handelDelayedStream(data.toString(), videoBuffer);
+  //     videoBuffer.appendBuffer(data);
+  //   }
+  // });
 
   const stream = await streamHandeler.CREATE_STREAM(async (newData) => {
     // console.log("New Data", newData);

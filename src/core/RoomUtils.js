@@ -40,7 +40,7 @@ module.exports = class RoomUtils extends EventEmitter {
   }
 
   sendDataToAllConnections(data) {
-    console.log(`Sending data to ${this.conns.length} conns`, data);
+    console.log(`Sending data to ${this.conns.length} conns`);
     for (const conn of this.conns) {
       conn.write(data);
     }
