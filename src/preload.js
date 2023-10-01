@@ -33,7 +33,7 @@ ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId) => {
 
 async function connectToHost(remoteId) {
   const video = document.querySelector("video");
-  const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
+  const videRenderer = await new VideoRenderer("video_holder");
 
   const reciver = new RoomUtils();
   reciver.start();
@@ -59,22 +59,15 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
 
   console.log(`Joined Room ${roomId}`);
   const streamHandeler = new StreamHandler();
-
+  const videoRenderer = await new VideoRenderer("video_holder");
   sednderRoomUtils.on("newconnection", async (remoteId) => {
     console.log("New Connection");
-    const video = document.getElementById("remoteVideo");
 
-    const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
-    currectPeers[remoteId] = {
-      videoBuffer: videoBuffer,
-      videoElement: video,
-    };
-    sednderRoomUtils.on("data", ({ name, data }) => {
+    await videoRenderer.addNewVideoStream(remoteId);
+
+    sednderRoomUtils.on("data", ({ remoteId, data }) => {
       console.log("Data");
-      if (!videoBuffer.updating) {
-        // handelDelayedStream(data.toString(), videoBuffer);
-        videoBuffer.appendBuffer(data);
-      }
+      videoRenderer.onPeerVideoUpdate(remoteId, data);
     });
   });
 
@@ -93,17 +86,16 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   //   }
   // });
 
+  await videoRenderer.addNewVideoStream("local_stream");
   const stream = await streamHandeler.CREATE_STREAM(async (newData) => {
     // console.log("New Data", newData);
     const fileReader = new FileReader();
     fileReader.onloadend = () => {
+      videoRenderer.onPeerVideoUpdate("local_stream", fileReader.result);
       sednderRoomUtils.sendDataToAllConnections(Buffer.from(fileReader.result));
     };
     fileReader.readAsArrayBuffer(newData);
   });
-
-  const localVideo = document.getElementById("localVideo");
-  localVideo.srcObject = stream;
 
   streamHandeler.START(500);
 });

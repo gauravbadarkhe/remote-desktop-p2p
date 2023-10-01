@@ -26,18 +26,18 @@ module.exports = class RoomUtils extends EventEmitter {
 
   start() {
     this.swarm.on("connection", (conn) => {
-      const name = b4a.toString(conn.remotePublicKey, "hex");
-      this.emit("newconnection", name);
-      console.log(`New Peer COnnected  :${name}`);
+      const remoteId = b4a.toString(conn.remotePublicKey, "hex");
+      this.emit("newconnection", remoteId);
+      console.log(`New Peer COnnected  :${remoteId}`);
       this.conns.push(conn);
       conn.on("error", (err) => console.error(err));
       conn.once("close", () => {
         this.conns.splice(this.conns.indexOf(conn), 1);
-        this.emit("close", name);
+        this.emit("close", remoteId);
       });
       conn.on("data", (data) => {
-        // console.log(`${name}: ${data}`);
-        this.emit("data", { name: name, data: data });
+        // console.log(`${remoteId}: ${data}`);
+        this.emit("data", { remoteId: remoteId, data: data });
       });
     });
   }
