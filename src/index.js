@@ -6,7 +6,7 @@ const {
   Menu,
 } = require("electron");
 const path = require("path");
-// require("electron-reload")(path.join(__dirname, "ui/"));
+require("electron-reload")(path.join(__dirname, "ui/"));
 
 // try {
 //   require("electron-reloader")(module, {

@@ -29,7 +29,9 @@
     "hyperdht": "^6.6.1",
     "hyperdrive": "^11.5.3",
     "hyperswarm": "^4.6.1",
-    "localdrive": "^1.11.0"
+    "localdrive": "^1.11.0",
+    "lodash": "^4.17.21",
+    "rect-scaler": "^1.1.0"
   },
   "devDependencies": {
     "@electron-forge/cli": "^6.4.2",

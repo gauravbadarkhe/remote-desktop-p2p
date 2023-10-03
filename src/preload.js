@@ -33,7 +33,7 @@ ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId) => {
 
 async function connectToHost(remoteId) {
   const video = document.querySelector("video");
-  const videRenderer = await new VideoRenderer("video_holder");
+  const videRenderer = await new VideoRenderer("gallery");
 
   const reciver = new RoomUtils();
   reciver.start();
@@ -54,19 +54,19 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   const sednderRoomUtils = new RoomUtils();
   sednderRoomUtils.start();
   const roomId = await sednderRoomUtils.initRoom(
-    "918a42449cddfd27fca9df27677415c238310356edc1f6d060e512a8dbb28528"
+    "45a8db24ca9d4848f945944d711be1ba92960f625e9afe238c2acf550b16fc9d"
   );
 
   console.log(`Joined Room ${roomId}`);
   const streamHandeler = new StreamHandler();
-  const videoRenderer = await new VideoRenderer("video_holder");
+  const videoRenderer = await new VideoRenderer("gallery");
   sednderRoomUtils.on("newconnection", async (remoteId) => {
     console.log("New Connection");
 
     await videoRenderer.addNewVideoStream(remoteId);
 
     sednderRoomUtils.on("data", ({ remoteId, data }) => {
-      console.log("Data");
+      console.log("Data", data.toString());
       videoRenderer.onPeerVideoUpdate(remoteId, data);
     });
   });
@@ -86,16 +86,17 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   //   }
   // });
 
-  await videoRenderer.addNewVideoStream("local_stream");
+  await videoRenderer.addNewVideoStream("local_stream", true);
   const stream = await streamHandeler.CREATE_STREAM(async (newData) => {
     // console.log("New Data", newData);
     const fileReader = new FileReader();
     fileReader.onloadend = () => {
-      videoRenderer.onPeerVideoUpdate("local_stream", fileReader.result);
+      // videoRenderer.onPeerVideoUpdate("local_stream", fileReader.result);
       sednderRoomUtils.sendDataToAllConnections(Buffer.from(fileReader.result));
     };
     fileReader.readAsArrayBuffer(newData);
   });
+  videoRenderer.attachLocalStream("local_stream", stream);
 
   streamHandeler.START(500);
 });

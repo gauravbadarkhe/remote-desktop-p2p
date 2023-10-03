@@ -17,10 +17,10 @@ module.exports = class StreamHandler {
             mandatory: {
               chromeMediaSource: "desktop",
               chromeMediaSourceId: sourceId,
-              minWidth: 1280,
-              maxWidth: 1280,
-              minHeight: 720,
-              maxHeight: 720,
+              minWidth: 1920,
+              maxWidth: 1920,
+              minHeight: 1080,
+              maxHeight: 1080,
             },
           }
         : true,
