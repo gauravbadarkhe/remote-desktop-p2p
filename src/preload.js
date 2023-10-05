@@ -18,7 +18,8 @@ contextBridge.exposeInMainWorld("bridge", {
   // InitRoom
   // OnNewConnection
   // OnNewData
-  onNewConnection: (callback) => ipcRenderer.on("onNewConnection", callback),
+  newPeerConnection: (callback) =>
+    ipcRenderer.on("newPeerConnection", callback),
   Room_Init: (roomId) => initRoom(roomId),
 });
 
@@ -48,7 +49,8 @@ async function initRoom(roomId) {
   Room.on("newconnection", async (remoteId) => {
     console.log("New Connection");
 
-    await videoRenderer.addNewVideoStream(remoteId);
+    ipcRenderer.invoke("newPeerConnection", remoteId),
+      await videoRenderer.addNewVideoStream(remoteId);
 
     sednderRoomUtils.on("data", ({ remoteId, data }) => {
       console.log("Data", data.toString());

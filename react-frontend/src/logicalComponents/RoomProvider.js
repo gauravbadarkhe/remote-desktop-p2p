@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
 
 export default function useRoom() {
-  const [roomId, setRoom] = useState();
-  const [peers, setPeers] = useState();
+  const [roomId, setRoomId] = useState();
+  const [peers, setPeers] = useState([]);
 
-  useEffect(() => {}, [roomId]);
+  const initRoom = async (id) => {
+    const roomId = await window.bridge.Room_Init(roomId);
+    setRoomId(roomId);
+  };
 
-  return [roomId, peers];
+  return { roomId, peers, initRoom };
 }

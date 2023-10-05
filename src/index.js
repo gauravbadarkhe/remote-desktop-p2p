@@ -46,7 +46,8 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
-  handleIPCs();
+  handleIPCs(mainWindow);
+
   ipcMain.handle("connetToRemoteHost", (event, remoteId, videoElementId) => {
     console.log(remoteId, videoElementId);
     mainWindow.webContents.send("CONNECT_TO_HOST", remoteId, videoElementId);
@@ -110,4 +111,8 @@ app.on("activate", () => {
   }
 });
 
-function handleIPCs() {}
+function handleIPCs(mainWindow) {
+  ipcMain.handle("newPeerConnection", (event, remoteId) => {
+    mainWindow.webContents.send("newPeerConnection", remoteId);
+  });
+}
