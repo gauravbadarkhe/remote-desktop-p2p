@@ -4,8 +4,9 @@ export function ChatView() {
   return (
     <Box
       sx={{
-        height: "95vh",
+        height: "90vh",
         bgcolor: "background.paper",
+        borderLeft: ".1px solid grey",
         display: "flex",
       }}
     >

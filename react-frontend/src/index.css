@@ -33,7 +33,8 @@ code {
 }
 
 .player-wrapper {
-  height: 95vh;
+  height: 90vh;
+  border-right: 1px grey;
   background: #0F1925;
 
 }

@@ -43,7 +43,7 @@ export function TopBar() {
       justifyContent="center"
       alignItems="center"
       sx={{
-        height: "5vh",
+        height: "10vh",
         padding: "10px",
         borderBottom: ".1px solid grey",
         bgcolor: "background.paper",

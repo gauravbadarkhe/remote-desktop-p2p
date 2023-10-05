@@ -13,10 +13,10 @@ function App() {
         <TopBar />
       </Grid>
       <Grid container item xs={6} direction="row">
-        <Grid item xs={9}>
+        <Grid item xs={8}>
           <VideoView />
         </Grid>
-        <Grid item xs={3}>
+        <Grid item xs={4}>
           <ChatView />
         </Grid>
       </Grid>

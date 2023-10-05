@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld("bridge", {
   // InitRoom
   // OnNewConnection
   // OnNewData
+  onNewConnection: (callback) => ipcRenderer.on("onNewConnection", callback),
   Room_Init: (roomId) => initRoom(roomId),
 });
 
@@ -42,6 +43,18 @@ ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId) => {
 
 async function initRoom(roomId) {
   const _roomId = await Room.initRoom(roomId);
+  Room.start();
+
+  Room.on("newconnection", async (remoteId) => {
+    console.log("New Connection");
+
+    await videoRenderer.addNewVideoStream(remoteId);
+
+    sednderRoomUtils.on("data", ({ remoteId, data }) => {
+      console.log("Data", data.toString());
+      videoRenderer.onPeerVideoUpdate(remoteId, data);
+    });
+  });
   return _roomId;
 }
 
