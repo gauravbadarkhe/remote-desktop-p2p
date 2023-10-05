@@ -9,14 +9,14 @@ import { ChatView } from "./components/ChatView";
 function App() {
   return (
     <Grid container direction="column">
-      <Grid item md={3} justifyContent="center">
+      <Grid item xs={6} justifyContent="center">
         <TopBar />
       </Grid>
-      <Grid container item xs={9} direction="row">
-        <Grid item xs={8}>
+      <Grid container item xs={6} direction="row">
+        <Grid item xs={9}>
           <VideoView />
         </Grid>
-        <Grid item xs={4}>
+        <Grid item xs={3}>
           <ChatView />
         </Grid>
       </Grid>

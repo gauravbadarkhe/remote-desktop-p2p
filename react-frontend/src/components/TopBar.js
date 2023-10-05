@@ -22,31 +22,46 @@ export function TopBar() {
     setOpen(true);
   };
 
-  const handleClose = (roomId) => {
+  const joinRoom = (roomId) => {
     setOpen(false);
-    setRoomId(roomId);
+    createRoom(roomId);
   };
   const handleLeaveRoom = () => {
     setRoomId();
+  };
+
+  const createRoom = async (roomId) => {
+    setIsLoading(true);
+    roomId = await window.bridge.Room_Init(roomId);
+    setRoomId(roomId);
+    setIsLoading(false);
   };
   return (
     <Stack
       direction="row"
       spacing={2}
+      justifyContent="center"
+      alignItems="center"
       sx={{
+        height: "5vh",
         padding: "10px",
         borderBottom: ".1px solid grey",
         bgcolor: "background.paper",
-        display: "flex",
-        justifyContent: "flex-end",
       }}
     >
-      {open && <InputDialog onSubmit={handleClose}></InputDialog>}
+      {open && <InputDialog onSubmit={joinRoom}></InputDialog>}
 
       {roomId ? (
-        <Stack spacing={{ xs: 1, sm: 2 }} direction="row" useFlexGap>
+        <Stack
+          spacing={2}
+          direction="row"
+          useFlexGap
+          alignItems="center"
+          flexWrap="wrap"
+          justifyContent="space-between"
+        >
           <Box
-            sx={{ color: "text.primary", fontSize: 20, fontWeight: "medium" }}
+            sx={{ color: "text.primary", fontSize: 15, fontWeight: "medium" }}
           >
             Room : {roomId}
           </Box>
@@ -71,12 +86,7 @@ export function TopBar() {
           <Button
             variant="contained"
             endIcon={<AddRoundedIcon />}
-            onClick={(e) => {
-              setIsLoading(true);
-              setTimeout(() => {
-                setIsLoading(false);
-              }, 3000);
-            }}
+            onClick={createRoom}
           >
             Create Room
           </Button>

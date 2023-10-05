@@ -40,6 +40,7 @@ bower_components
 build/Release
 
 # Dependency directories
+react-frontend/node_modules/
 node_modules/
 out-stream/
 jspm_packages/

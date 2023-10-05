@@ -5,6 +5,7 @@
   "description": "My Electron application description",
   "main": "src/index.js",
   "scripts": {
+    "start-ui": "cd react-frontend && BROWSER=none npm run start",
     "start": "electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",

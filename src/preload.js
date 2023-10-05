@@ -12,24 +12,38 @@ const VideoRenderer = require("./core/videoRenderer");
 // let outvid = fs.createWriteStream(`./out-stream/bbb.webm`);
 const currectPeers = {};
 const chunks = [];
-contextBridge.exposeInMainWorld("versions", {
-  node: () => process.versions.node,
-  chrome: () => process.versions.chrome,
-  electron: () => process.versions.electron,
-  getSourceScreens: async () => await ipcRenderer.invoke("getSourceScreens"),
-  startHostDesktop: () => ipcRenderer.invoke("startHostDesktop"),
+const Room = new RoomUtils();
 
-  startRecording: () => ipcRenderer.invoke("startRecording"),
-  stopRecording: () => ipcRenderer.invoke("stopRecording"),
-  connetToRemoteHost: (remoteHostId, videoElementId) => {
-    console.log(remoteHostId, videoElementId);
-    ipcRenderer.invoke("connetToRemoteHost", remoteHostId, videoElementId);
-  },
+contextBridge.exposeInMainWorld("bridge", {
+  // InitRoom
+  // OnNewConnection
+  // OnNewData
+  Room_Init: (roomId) => initRoom(roomId),
 });
+
+// contextBridge.exposeInMainWorld("versions", {
+//   node: () => process.versions.node,
+//   chrome: () => process.versions.chrome,
+//   electron: () => process.versions.electron,
+//   getSourceScreens: async () => await ipcRenderer.invoke("getSourceScreens"),
+//   startHostDesktop: () => ipcRenderer.invoke("startHostDesktop"),
+
+//   startRecording: () => ipcRenderer.invoke("startRecording"),
+//   stopRecording: () => ipcRenderer.invoke("stopRecording"),
+//   connetToRemoteHost: (remoteHostId, videoElementId) => {
+//     console.log(remoteHostId, videoElementId);
+//     ipcRenderer.invoke("connetToRemoteHost", remoteHostId, videoElementId);
+//   },
+// });
 
 ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId) => {
   connectToHost(remoteId);
 });
+
+async function initRoom(roomId) {
+  const _roomId = await Room.initRoom(roomId);
+  return _roomId;
+}
 
 async function connectToHost(remoteId) {
   const video = document.querySelector("video");
@@ -53,9 +67,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
 
   const sednderRoomUtils = new RoomUtils();
   sednderRoomUtils.start();
-  const roomId = await sednderRoomUtils.initRoom(
-    "45a8db24ca9d4848f945944d711be1ba92960f625e9afe238c2acf550b16fc9d"
-  );
+  const roomId = await sednderRoomUtils.initRoom();
 
   console.log(`Joined Room ${roomId}`);
   const streamHandeler = new StreamHandler();

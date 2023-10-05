@@ -35,7 +35,8 @@ const createWindow = () => {
   });
 
   // and load the index.html of the app.
-  mainWindow.loadFile(path.join(__dirname, "ui/index.html"));
+  // mainWindow.loadFile(path.join(__dirname, "ui/index.html"));
+  mainWindow.loadURL("http://localhost:3000/");
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
@@ -45,6 +46,7 @@ const createWindow = () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", () => {
+  handleIPCs();
   ipcMain.handle("connetToRemoteHost", (event, remoteId, videoElementId) => {
     console.log(remoteId, videoElementId);
     mainWindow.webContents.send("CONNECT_TO_HOST", remoteId, videoElementId);
@@ -107,3 +109,5 @@ app.on("activate", () => {
     createWindow();
   }
 });
+
+function handleIPCs() {}
