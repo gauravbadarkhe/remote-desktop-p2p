@@ -3,6 +3,7 @@ import ReactPlayer from "react-player";
 import { useUserMedia } from "../logicalComponents/UserMediaProvider";
 import { useMemo, useRef, useEffect } from "react";
 import { PackedGrid } from "react-packed-grid";
+import { useRoom } from "../logicalComponents/RoomProvider";
 
 export function VideoContainer(stream) {
   return (
@@ -42,6 +43,7 @@ export function VideoView() {
   // const { status, startRecording, stopRecording, mediaBlobUrl } =
   //   useReactMediaRecorder({ video: true });
   const updateLayoutRef = useRef();
+  const { initRoom, roomId, peers, leaveRoom } = useRoom();
 
   //
   return (
@@ -50,8 +52,8 @@ export function VideoView() {
       boxAspectRatio={1}
       updateLayoutRef={updateLayoutRef}
     >
-      {Array.from({ length: 2 }).map((_, idx) => (
-        <GridItemPlaceholder key={idx}>
+      {Array.from({ length: peers.length }).map((_, idx) => (
+        <GridItemPlaceholder key={peers[idx]}>
           <video
             muted
             style={{

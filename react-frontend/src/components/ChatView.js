@@ -1,6 +1,8 @@
 import { Box, Container } from "@mui/material";
+import { useRoom } from "../logicalComponents/RoomProvider";
 
 export function ChatView() {
+  const { peers } = useRoom();
   return (
     <Box
       sx={{
@@ -15,7 +17,7 @@ export function ChatView() {
           margin: "auto",
         }}
       >
-        ChatView
+        Total Peers : {peers.length}
       </Box>
     </Box>
   );

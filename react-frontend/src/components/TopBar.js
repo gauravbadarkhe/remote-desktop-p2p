@@ -13,12 +13,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useContext, useState } from "react";
 import { InputDialog } from "./InputDialog";
 import { LoadingContext } from "../context/LoadingContext";
-import useRoomManager from "../logicalComponents/RoomProvider";
+import useRoomManager, { useRoom } from "../logicalComponents/RoomProvider";
 export function TopBar() {
   const [open, setOpen] = useState(false);
   const { isLoading, setIsLoading } = useContext(LoadingContext);
 
-  const { initRoom, roomId, peers, leaveRoom } = useRoomManager();
+  const { initRoom, roomId, peers, leaveRoom } = useRoom();
 
   const openRoomPrompt = () => {
     setOpen(true);
@@ -29,10 +29,14 @@ export function TopBar() {
     if (roomId) createRoom(roomId);
   };
 
-  const createRoom = async (roomId) => {
-    setIsLoading(true);
-    await initRoom(roomId);
-    setIsLoading(false);
+  const createRoom = async (_roomId) => {
+    try {
+      setIsLoading(true);
+      await initRoom(_roomId);
+      setIsLoading(false);
+    } catch (error) {
+      console.error(error);
+    }
   };
   return (
     <Stack

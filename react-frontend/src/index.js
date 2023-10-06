@@ -12,6 +12,7 @@ import theme from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { LoadingContext } from "./context/LoadingContext";
 import { LoadingOverLay } from "./components/LoadingOverlay";
+import { RoomProvider } from "./logicalComponents/RoomProvider";
 
 function Application() {
   const [isLoading, setIsLoading] = useState();
@@ -19,9 +20,10 @@ function Application() {
 
   return (
     <LoadingContext.Provider value={value}>
-      {isLoading && <LoadingOverLay />}
-      <App />
-      {/* What does this really do?? Is it Efficiency????
+      <RoomProvider>
+        {isLoading && <LoadingOverLay />}
+        <App />
+        {/* What does this really do?? Is it Efficiency????
       {useMemo(
         () => (
           <>
@@ -30,6 +32,7 @@ function Application() {
         ),
         []
       )} */}
+      </RoomProvider>
     </LoadingContext.Provider>
   );
 }

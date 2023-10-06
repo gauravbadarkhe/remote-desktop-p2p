@@ -12,7 +12,7 @@ const VideoRenderer = require("./core/videoRenderer");
 // let outvid = fs.createWriteStream(`./out-stream/bbb.webm`);
 const currectPeers = {};
 const chunks = [];
-const Room = new RoomUtils();
+let Room = new RoomUtils();
 
 contextBridge.exposeInMainWorld("bridge", {
   // InitRoom
@@ -62,9 +62,16 @@ function listenToData(callback) {
   });
 }
 async function initRoom(roomId) {
-  Room.initEvents();
-  const _roomId = await Room.initRoom(roomId);
-  return _roomId;
+  try {
+    if (Room) leaveRoom();
+    Room = new RoomUtils();
+    Room.initEvents();
+    const _roomId = await Room.initRoom(roomId);
+    return _roomId;
+  } catch (error) {
+    console.error(error);
+    return;
+  }
 }
 
 async function connectToHost(remoteId) {
