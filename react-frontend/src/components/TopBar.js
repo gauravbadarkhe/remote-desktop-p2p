@@ -13,10 +13,12 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useContext, useState } from "react";
 import { InputDialog } from "./InputDialog";
 import { LoadingContext } from "../context/LoadingContext";
+import useRoomManager from "../logicalComponents/RoomProvider";
 export function TopBar() {
   const [open, setOpen] = useState(false);
-  const [roomId, setRoomId] = useState(false);
   const { isLoading, setIsLoading } = useContext(LoadingContext);
+
+  const { initRoom, roomId, peers, leaveRoom } = useRoomManager();
 
   const openRoomPrompt = () => {
     setOpen(true);
@@ -24,16 +26,12 @@ export function TopBar() {
 
   const joinRoom = (roomId) => {
     setOpen(false);
-    createRoom(roomId);
-  };
-  const handleLeaveRoom = () => {
-    setRoomId();
+    if (roomId) createRoom(roomId);
   };
 
   const createRoom = async (roomId) => {
     setIsLoading(true);
-    roomId = await window.bridge.Room_Init(roomId);
-    setRoomId(roomId);
+    await initRoom(roomId);
     setIsLoading(false);
   };
   return (
@@ -69,7 +67,7 @@ export function TopBar() {
             variant="contained"
             color="error"
             endIcon={<CloseIcon />}
-            onClick={handleLeaveRoom}
+            onClick={leaveRoom}
           >
             Leave Room
           </Button>
@@ -86,7 +84,7 @@ export function TopBar() {
           <Button
             variant="contained"
             endIcon={<AddRoundedIcon />}
-            onClick={createRoom}
+            onClick={(e) => createRoom()}
           >
             Create Room
           </Button>

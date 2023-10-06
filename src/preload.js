@@ -16,10 +16,10 @@ const Room = new RoomUtils();
 
 contextBridge.exposeInMainWorld("bridge", {
   // InitRoom
-  // OnNewConnection
-  // OnNewData
-  newPeerConnection: (callback) =>
-    ipcRenderer.on("newPeerConnection", callback),
+
+  leaveRoom: () => leaveRoom(),
+  newData: (callback) => listenToData(callback),
+  newPeerConnection: (callback) => listenToConnection(callback),
   Room_Init: (roomId) => initRoom(roomId),
 });
 
@@ -42,21 +42,28 @@ ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId) => {
   connectToHost(remoteId);
 });
 
-async function initRoom(roomId) {
-  const _roomId = await Room.initRoom(roomId);
-  Room.start();
+function leaveRoom() {
+  Room.closeRoom();
+  Room = new RoomUtils();
+}
 
+function listenToConnection(callback) {
   Room.on("newconnection", async (remoteId) => {
     console.log("New Connection");
 
-    ipcRenderer.invoke("newPeerConnection", remoteId),
-      await videoRenderer.addNewVideoStream(remoteId);
-
-    sednderRoomUtils.on("data", ({ remoteId, data }) => {
-      console.log("Data", data.toString());
-      videoRenderer.onPeerVideoUpdate(remoteId, data);
-    });
+    callback(remoteId);
   });
+}
+
+function listenToData(callback) {
+  Room.on("data", ({ remoteId, data }) => {
+    console.log("Data", data.toString());
+    callback({ remoteId, data });
+  });
+}
+async function initRoom(roomId) {
+  Room.initEvents();
+  const _roomId = await Room.initRoom(roomId);
   return _roomId;
 }
 
@@ -65,7 +72,7 @@ async function connectToHost(remoteId) {
   const videRenderer = await new VideoRenderer("gallery");
 
   const reciver = new RoomUtils();
-  reciver.start();
+  reciver.initEvents();
   await reciver.initRoom(remoteId);
 
   reciver.on("data", ({ name, data }) => {
@@ -81,7 +88,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   console.log("Set Source");
 
   const sednderRoomUtils = new RoomUtils();
-  sednderRoomUtils.start();
+  sednderRoomUtils.initEvents();
   const roomId = await sednderRoomUtils.initRoom();
 
   console.log(`Joined Room ${roomId}`);
@@ -103,7 +110,7 @@ ipcRenderer.on("SET_SOURCE", async (event, sourceId) => {
   // const videoBuffer = await new VideoRenderer(video).getSourceBuffer();
 
   // const reciver = new RoomUtils();
-  // reciver.start();
+  // reciver.initEvents();
   // await reciver.initRoom(roomId);
 
   // reciver.on("data", ({ name, data }) => {

@@ -24,7 +24,11 @@ module.exports = class RoomUtils extends EventEmitter {
     });
   }
 
-  start() {
+  closeRoom() {
+    this.swarm.destroy();
+  }
+
+  initEvents() {
     this.swarm.on("connection", (conn) => {
       const remoteId = b4a.toString(conn.remotePublicKey, "hex");
       this.emit("newconnection", remoteId);

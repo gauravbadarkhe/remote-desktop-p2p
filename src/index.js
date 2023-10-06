@@ -115,4 +115,8 @@ function handleIPCs(mainWindow) {
   ipcMain.handle("newPeerConnection", (event, remoteId) => {
     mainWindow.webContents.send("newPeerConnection", remoteId);
   });
+
+  ipcMain.handle("newData", (event, { remoteId, data }) => {
+    mainWindow.webContents.send("newData", { remoteId, data });
+  });
 }
