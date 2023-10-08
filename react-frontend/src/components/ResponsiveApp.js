@@ -5,6 +5,7 @@ import { PackedGrid } from "react-packed-grid";
 import ReactPlayer from "react-player";
 import { useUserMedia } from "../hooks/UserMediaProvider";
 import { useRoom } from "../hooks/RoomProvider";
+import { forIn } from "lodash";
 
 function GridItemPlaceholder({ children }) {
   return (
@@ -92,9 +93,11 @@ const ResponsiveApp = () => {
 
   useEffect(() => {
     if (peers && peers.length > 0) {
-      addDataListerner(peers[0], ({ data, remoteId }) => {
-        sourceBufferRef.current.appendBuffer(data);
-      });
+      for (const peer of peers) {
+        addDataListerner(peer, ({ data, remoteId }) => {
+          // sourceBufferRef.current.appendBuffer(data);
+        });
+      }
     }
   }, [peers]);
 
@@ -108,7 +111,7 @@ const ResponsiveApp = () => {
             type="number"
             min="1"
             value={numBoxes}
-            onChange={(e) => setNumBoxes(Number.parseInt(e.target.value, 10))}
+            onChange={(e) => setNumBoxes(e.target.value)}
           />
         </label>
         <label>
