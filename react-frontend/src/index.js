@@ -23,8 +23,8 @@ function Application() {
     <LoadingContext.Provider value={value}>
       <RoomProvider>
         {isLoading && <LoadingOverLay />}
-        <App />
-        {/* <ResponsiveApp></ResponsiveApp> */}
+        {/* <App /> */}
+        <ResponsiveApp></ResponsiveApp>
         {/* What does this really do?? Is it Efficiency????
       {useMemo(
         () => (

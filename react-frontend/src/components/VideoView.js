@@ -2,6 +2,8 @@ import { useUserMedia } from "../hooks/UserMediaProvider";
 import { useMemo, useRef, useEffect } from "react";
 import { PackedGrid } from "react-packed-grid";
 import { useRoom } from "../hooks/RoomProvider";
+import { Buffer } from "buffer/";
+
 import { PeerVideo } from "./PeerVideo";
 
 function GridItemPlaceholder({ children }) {
