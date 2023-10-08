@@ -55,7 +55,7 @@ export function VideoView() {
   useEffect(() => {
     if (stream) {
       startStreamingData((newData) => {
-        sendToAllPeers(newData);
+        sendToAllPeers(Buffer.from(newData));
       });
     }
     return stopStreamingData;

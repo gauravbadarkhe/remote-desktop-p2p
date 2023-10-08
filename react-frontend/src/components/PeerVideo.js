@@ -24,7 +24,7 @@ export function PeerVideo({ localStream, remotePeerId }) {
     const createDataListerner = () => {
       addDataListerner(remotePeerId, ({ data, remoteId }) => {
         console.log(`Data From remote : `, remoteId);
-        sourceBuffer.current.appendBuffer(Buffer.from(data));
+        sourceBuffer.current.appendBuffer(data);
       });
     };
     if (remotePeerId) {

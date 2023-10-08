@@ -132,7 +132,9 @@ const ResponsiveApp = () => {
         </button>
         <button
           onClick={async () => {
-            await initRoom();
+            await initRoom(
+              "7d23077532926f3da1f77551fdb08cddb72c8d76cc8c8cc0bd7fc77b9310ce76"
+            );
           }}
         >
           Room
