@@ -12,7 +12,8 @@ import theme from "./theme";
 import { CssBaseline, ThemeProvider } from "@mui/material";
 import { LoadingContext } from "./context/LoadingContext";
 import { LoadingOverLay } from "./components/LoadingOverlay";
-import { RoomProvider } from "./logicalComponents/RoomProvider";
+import { RoomProvider } from "./hooks/RoomProvider";
+import ResponsiveApp from "./components/ResponsiveApp";
 
 function Application() {
   const [isLoading, setIsLoading] = useState();
@@ -22,7 +23,8 @@ function Application() {
     <LoadingContext.Provider value={value}>
       <RoomProvider>
         {isLoading && <LoadingOverLay />}
-        <App />
+        {/* <App /> */}
+        <ResponsiveApp></ResponsiveApp>
         {/* What does this really do?? Is it Efficiency????
       {useMemo(
         () => (

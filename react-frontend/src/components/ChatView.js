@@ -1,5 +1,5 @@
 import { Box, Container } from "@mui/material";
-import { useRoom } from "../logicalComponents/RoomProvider";
+import { useRoom } from "../hooks/RoomProvider";
 
 export function ChatView() {
   const { peers } = useRoom();

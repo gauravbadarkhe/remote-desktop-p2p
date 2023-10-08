@@ -5,7 +5,7 @@ import { Box, Container, Grid } from "@mui/material";
 import { TopBar } from "./components/TopBar";
 import { VideoView } from "./components/VideoView";
 import { ChatView } from "./components/ChatView";
-
+import React from "react";
 function App() {
   return (
     <Grid container direction="column">

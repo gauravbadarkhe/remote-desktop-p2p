@@ -13,7 +13,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import { useContext, useState } from "react";
 import { InputDialog } from "./InputDialog";
 import { LoadingContext } from "../context/LoadingContext";
-import useRoomManager, { useRoom } from "../logicalComponents/RoomProvider";
+import useRoomManager, { useRoom } from "../hooks/RoomProvider";
 export function TopBar() {
   const [open, setOpen] = useState(false);
   const { isLoading, setIsLoading } = useContext(LoadingContext);

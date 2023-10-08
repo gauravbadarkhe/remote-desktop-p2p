@@ -6,11 +6,9 @@ export const RoomProvider = ({ children }) => {
   const [roomId, setRoomId] = useState();
   const [peers, setPeers] = useState([]);
   const peersRef = useRef();
-  peersRef.current = peers;
+  const videoPeers = useRef({});
 
-  useEffect(() => {
-    console.log("peers", peers);
-  }, [peers]);
+  peersRef.current = peers;
 
   const initRoom = async (remoteRoomId) => {
     try {
@@ -19,16 +17,21 @@ export const RoomProvider = ({ children }) => {
       console.log(roomId);
       setRoomId(roomId);
 
-      window.bridge.newPeerConnection((peerConn) => {
-        console.log(peerConn);
+      window.bridge.newPeerConnection((peerConn, conn) => {
+        videoPeers.current[peerConn] = { callback: null, connectin: conn };
         let newPeers = [...peersRef.current, peerConn];
-        console.log(peers, "newPeers", newPeers);
         setPeers(newPeers);
         // setPeers([1, 2, 3, 4]);
       });
 
-      window.bridge.newData((data) => {
-        console.log("newData", data);
+      window.bridge.newData(({ data, remoteId }) => {
+        let videoPeerObj = videoPeers.current[remoteId];
+        if (videoPeerObj && videoPeerObj.callback) {
+          videoPeerObj.callback({ data, remoteId });
+        } else {
+          console.log("UNable to send data");
+        }
+        console.log("newData", remoteId, data);
       });
       return;
     } catch (error) {
@@ -39,7 +42,15 @@ export const RoomProvider = ({ children }) => {
   const leaveRoom = () => {
     console.log("leaveRoom");
     window.bridge.leaveRoom();
-    setRoomId();
+    setRoomId(null);
+  };
+
+  const sendToAllPeers = (buffer) => {
+    window.bridge.sendData(buffer);
+  };
+
+  const addDataListerner = (remotePeerId, callback) => {
+    videoPeers.current[remotePeerId]["callback"] = callback;
   };
 
   return (
@@ -49,6 +60,8 @@ export const RoomProvider = ({ children }) => {
         peers,
         initRoom,
         leaveRoom,
+        sendToAllPeers,
+        addDataListerner,
       }}
     >
       {children}

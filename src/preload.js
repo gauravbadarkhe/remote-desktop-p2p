@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld("bridge", {
   // InitRoom
 
   leaveRoom: () => leaveRoom(),
+  sendData: (data) => sendData(data),
   newData: (callback) => listenToData(callback),
   newPeerConnection: (callback) => listenToConnection(callback),
   Room_Init: (roomId) => initRoom(roomId),
@@ -42,6 +43,12 @@ ipcRenderer.on("CONNECT_TO_HOST", async (event, remoteId) => {
   connectToHost(remoteId);
 });
 
+function sendData(data) {
+  if (Room.conns?.length > 0) {
+    Room.sendDataToAllConnections(data);
+  }
+}
+
 function leaveRoom() {
   Room.closeRoom();
   Room = new RoomUtils();
@@ -57,7 +64,7 @@ function listenToConnection(callback) {
 
 function listenToData(callback) {
   Room.on("data", ({ remoteId, data }) => {
-    console.log("Data", data.toString());
+    // console.log("Data", data.toString());
     callback({ remoteId, data });
   });
 }
