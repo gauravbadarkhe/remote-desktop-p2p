@@ -52,7 +52,7 @@ const ResponsiveApp = () => {
   const focusRef = useCallback((el) => {
     el.focus();
   }, []);
-  const [numBoxes, setNumBoxes] = useState(1);
+  const [numBoxes, setNumBoxes] = useState();
   const [aspectRatio, setAspectRatio] = useState(1);
   const videoRef = useRef();
   const sourceBufferRef = useRef();
@@ -108,8 +108,6 @@ const ResponsiveApp = () => {
           Boxes
           <input
             ref={focusRef}
-            type="number"
-            min="1"
             value={numBoxes}
             onChange={(e) => setNumBoxes(e.target.value)}
           />
@@ -135,7 +133,7 @@ const ResponsiveApp = () => {
         </button>
         <button
           onClick={async () => {
-            await initRoom();
+            await initRoom(numBoxes);
           }}
         >
           Room
@@ -161,7 +159,7 @@ const ResponsiveApp = () => {
           ></video>
         </GridItemPlaceholder>
 
-        {Array.from({ length: numBoxes }).map((_, idx) => (
+        {Array.from({ length: 1 }).map((_, idx) => (
           <GridItemPlaceholder key={idx} stream={stream}>
             <video
               style={{
