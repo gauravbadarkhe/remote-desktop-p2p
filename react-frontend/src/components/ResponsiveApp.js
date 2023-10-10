@@ -36,7 +36,7 @@ const ResponsiveApp = () => {
   } = useUserMedia({
     constraints: { audio: true, video: true },
     mimeType: CODECS,
-    recorderTimeSlice: 50,
+    recortimeSlicederTimeSlice: 50,
   });
 
   const {
@@ -68,24 +68,6 @@ const ResponsiveApp = () => {
     }
   }, [roomId]);
 
-  // useEffect(() => {
-  //   if (stream) {
-  //     startStreamingData((newData) => {
-  //       sendToAllPeers(newData);
-  //       try {
-  //         if (sourceBufferRef.current) {
-  //           sourceBufferRef.current.appendBuffer(newData);
-  //         } else {
-  //           console.log("No Buffer");
-  //         }
-  //       } catch (error) {
-  //         console.error(error);
-  //       }
-  //     });
-  //   }
-  //   return stopStreamingData;
-  // }, [stream]);
-
   useEffect(() => {
     if (peers && peers.length > 0) {
       mediaSource.current = new MediaSource();
@@ -101,20 +83,11 @@ const ResponsiveApp = () => {
 
         startStreamingData((newData) => {
           sendToAllPeers(newData);
-          try {
-            // if (sourceBufferRef.current) {
-            //   sourceBufferRef.current.appendBuffer(newData);
-            // } else {
-            //   console.log("No Buffer");
-            // }
-          } catch (error) {
-            console.error(error);
-          }
         });
 
         addDataListerner(peers[0], ({ data, remoteId }) => {
           console.log(mediaSource.current.readyState, "New Data", remoteId);
-          console.log(data);
+
           if (sourceBufferRef.current) {
             try {
               if (sourceBufferRef.current) {
@@ -135,50 +108,6 @@ const ResponsiveApp = () => {
       videoRef.current.src = URL.createObjectURL(mediaSource.current);
     }
   }, [peers]);
-
-  // useEffect(() => {
-  //   console.log("useEffect:roomId");
-  //
-  //  else {
-  //   mediaSource.current.addEventListener("sourceopen", () => {
-  //     sourceBufferRef.current = mediaSource.current.addSourceBuffer(
-  //       CODECS
-  //     );
-
-  //     startStreamingData((newData) => {
-  //       sendToAllPeers(newData);
-  //       console.log("sendToAllPeers", mediaSource.current.readyState);
-  //       // sourceBufferRef.current.appendBuffer(newData);
-  //     });
-  //   });
-
-  //   videoRef.current.src = URL.createObjectURL(mediaSource.current);
-  // }
-
-  // return () => {
-  //   cancelStream();
-  //   stopStreamingData();
-  // };
-  // }, [roomId]);
-
-  // useEffect(() => {
-  //   console.log("useEffect:peers");
-  //   if (peers && peers.length > 0) {
-  //     addDataListerner(peers[0], ({ data, remoteId }) => {
-  //       console.log(mediaSource.current.readyState, "New Data", remoteId);
-  //       console.log(data);
-  //       if (sourceBufferRef.current) {
-  //         try {
-  //           // if (!sourceBufferRef.current.updating)
-  //           console.log(sourceBufferRef);
-  //           sourceBufferRef.current.appendBuffer(data);
-  //         } catch (error) {
-  //           console.error(error);
-  //         }
-  //       }
-  //     });
-  //   }
-  // }, [peers]);
 
   return (
     <>
