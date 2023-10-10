@@ -4,18 +4,14 @@ import { Buffer } from "buffer/";
 export function PeerVideo({ localStream, remotePeerId, isLocal }) {
   const { addDataListerner } = useRoom();
   const sourceBuffer = useRef();
-  const mediaSource = new MediaSource();
+  const mediaRef = useRef();
   const videoRef = useRef();
 
   useEffect(() => {
-    console.log(
-      "Type Support",
-      MediaSource.isTypeSupported("video/webm;codecs=vp9,opus")
-    );
     const sourceOpened = () => {
       console.log("sourceopen");
 
-      sourceBuffer.current = mediaSource.addSourceBuffer(
+      sourceBuffer.current = mediaRef.current.addSourceBuffer(
         "video/webm;codecs=vp9,opus"
       );
       sourceBuffer.current.onupdateend = () => console.log("onupdateend");
@@ -37,14 +33,15 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
     if (isLocal) {
       videoRef.current.srcObject = localStream;
     } else {
-      mediaSource.addEventListener("sourceopen", sourceOpened);
-      mediaSource.addEventListener("sourceclose", (e) =>
+      mediaRef.current = new MediaSource();
+      mediaRef.current.addEventListener("sourceopen", sourceOpened);
+      mediaRef.current.addEventListener("sourceclose", (e) =>
         console.log("sourceclose", e)
       );
-      mediaSource.addEventListener("sourceended", (e) =>
+      mediaRef.current.addEventListener("sourceended", (e) =>
         console.log("sourceended", e)
       );
-      videoRef.current.src = URL.createObjectURL(mediaSource);
+      videoRef.current.src = URL.createObjectURL(mediaRef.current);
     }
   }, [remotePeerId]);
 

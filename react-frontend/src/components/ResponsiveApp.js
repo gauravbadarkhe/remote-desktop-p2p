@@ -5,6 +5,7 @@ import ReactPlayer from "react-player";
 import { useUserMedia } from "../hooks/UserMediaProvider";
 import { useRoom } from "../hooks/RoomProvider";
 import { forIn } from "lodash";
+import { PeerVideo } from "./PeerVideo";
 
 function GridItemPlaceholder({ children }) {
   return (
@@ -69,45 +70,49 @@ const ResponsiveApp = () => {
   }, [roomId]);
 
   useEffect(() => {
-    if (peers && peers.length > 0) {
-      mediaSource.current = new MediaSource();
-      mediaSource.current.addEventListener("sourceclose", (...e) =>
-        console.log("sourceclose", ...e)
-      );
-      mediaSource.current.addEventListener("sourceended", (...e) =>
-        console.log("sourceended", ...e)
-      );
-
-      mediaSource.current.addEventListener("sourceopen", () => {
-        sourceBufferRef.current = mediaSource.current.addSourceBuffer(CODECS);
-
-        startStreamingData((newData) => {
-          sendToAllPeers(newData);
-        });
-
-        addDataListerner(peers[0], ({ data, remoteId }) => {
-          console.log(mediaSource.current.readyState, "New Data", remoteId);
-
-          if (sourceBufferRef.current) {
-            try {
-              if (sourceBufferRef.current) {
-                sourceBufferRef.current.appendBuffer(data);
-              }
-              // const blob = new Blob([data], { type: CODECS });
-              // const fileReader = new FileReader();
-              // fileReader.onloadend = () =>
-              //   sourceBufferRef.current.appendBuffer(fileReader.result);
-              // fileReader.readAsArrayBuffer(blob);
-            } catch (error) {
-              console.error(error);
-            }
-          }
-        });
+    if (stream) {
+      startStreamingData((newData) => {
+        sendToAllPeers(newData);
       });
-
-      videoRef.current.src = URL.createObjectURL(mediaSource.current);
     }
-  }, [peers]);
+  }, [stream]);
+
+  // useEffect(() => {
+  //   if (peers && peers.length > 0) {
+  //     mediaSource.current = new MediaSource();
+  //     mediaSource.current.addEventListener("sourceclose", (...e) =>
+  //       console.log("sourceclose", ...e)
+  //     );
+  //     mediaSource.current.addEventListener("sourceended", (...e) =>
+  //       console.log("sourceended", ...e)
+  //     );
+
+  //     mediaSource.current.addEventListener("sourceopen", () => {
+  //       sourceBufferRef.current = mediaSource.current.addSourceBuffer(CODECS);
+
+  //       addDataListerner(peers[0], ({ data, remoteId }) => {
+  //         console.log(mediaSource.current.readyState, "New Data", remoteId);
+
+  //         if (sourceBufferRef.current) {
+  //           try {
+  //             if (sourceBufferRef.current) {
+  //               sourceBufferRef.current.appendBuffer(data);
+  //             }
+  //             // const blob = new Blob([data], { type: CODECS });
+  //             // const fileReader = new FileReader();
+  //             // fileReader.onloadend = () =>
+  //             //   sourceBufferRef.current.appendBuffer(fileReader.result);
+  //             // fileReader.readAsArrayBuffer(blob);
+  //           } catch (error) {
+  //             console.error(error);
+  //           }
+  //         }
+  //       });
+  //     });
+
+  //     videoRef.current.src = URL.createObjectURL(mediaSource.current);
+  //   }
+  // }, [peers]);
 
   return (
     <>
@@ -152,43 +157,27 @@ const ResponsiveApp = () => {
         className="fullscreen"
         updateLayoutRef={updateLayoutRef}
       >
-        <GridItemPlaceholder key={1000} stream={stream}>
-          <video
-            style={{
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-              top: "0",
-              objectFit: "cover",
-            }}
-            autoPlay
-            ref={videoRef}
-            //   src={stream}
-          ></video>
-        </GridItemPlaceholder>
+        {/* <GridItemPlaceholder key={100} stream={stream}>
+          <PeerVideo></PeerVideo>
+        </GridItemPlaceholder> */}
 
-        <GridItemPlaceholder key={1} stream={stream}>
-          <video
-            style={{
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-              top: "0",
-              objectFit: "cover",
-            }}
-            autoPlay
-            ref={(video) => {
-              if (video) {
-                video.srcObject = stream;
-              }
-            }}
-            //   src={stream}
-          ></video>
-        </GridItemPlaceholder>
+        {stream && (
+          <GridItemPlaceholder key={1000} stream={stream}>
+            <PeerVideo
+              remotePeerId={"NA"}
+              isLocal
+              localStream={stream}
+            ></PeerVideo>
+          </GridItemPlaceholder>
+        )}
 
-        {/* {Array.from({ length: peers.length }).map((_, idx) => (
-         
-        ))} */}
+        {Array.from({ length: peers.length }).map((_, idx) => {
+          return (
+            <GridItemPlaceholder key={idx} stream={stream}>
+              <PeerVideo remotePeerId={peers[idx]}></PeerVideo>
+            </GridItemPlaceholder>
+          );
+        })}
       </PackedGrid>
     </>
   );
