@@ -1,11 +1,13 @@
 const {
   app,
+  session,
   BrowserWindow,
   ipcMain,
   desktopCapturer,
   Menu,
 } = require("electron");
 const path = require("path");
+const os = require("os");
 require("electron-reload")(path.join(__dirname, "ui/"));
 
 // try {
@@ -22,6 +24,10 @@ if (require("electron-squirrel-startup")) {
   app.quit();
 }
 let mainWindow;
+const reactDevToolsPath = path.join(
+  os.homedir(),
+  "/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.28.0_0/"
+);
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -40,11 +46,21 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+  // console.log("reactDevToolsPath", reactDevToolsPath);
 };
+
+// app.whenReady().then(async () => {
+//   try {
+//     await session.defaultSession.loadExtension(reactDevToolsPath);
+//   } catch (error) {
+//     console.error(error);
+//   }
+// });
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
+
 app.on("ready", () => {
   handleIPCs(mainWindow);
 

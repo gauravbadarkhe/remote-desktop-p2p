@@ -18,7 +18,7 @@ module.exports = class RoomUtils extends EventEmitter {
         client: true,
         server: true,
       });
-      await discovery.flushed();
+      // await discovery.flushed();
       console.log(`Joined Room ${b4a.toString(this._RoomId, "hex")}`);
       resolve(b4a.toString(this._RoomId, "hex"));
     });
@@ -41,13 +41,14 @@ module.exports = class RoomUtils extends EventEmitter {
       });
       conn.on("data", (data) => {
         // console.log(`${remoteId}: ${data}`);
-        this.emit("data", { remoteId: remoteId, data: data });
+        this.emit("data", { remoteId: remoteId, data: Buffer.from(data) });
       });
     });
   }
 
   sendDataToAllConnections(data) {
     console.log(`Sending data to ${this.conns.length} conns`);
+    console.log(data);
     for (const conn of this.conns) {
       conn.write(data);
     }

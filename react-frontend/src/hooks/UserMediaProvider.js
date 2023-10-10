@@ -23,7 +23,7 @@ export const useUserMedia = ({ constraints, mimeType, timeSlice = 500 }) => {
         const fileReader = new FileReader();
         fileReader.onloadend = () => {
           // console.log(Buffer.from(fileReader.result));
-          newDataCallback(fileReader.result);
+          newDataCallback(Buffer.from(fileReader.result));
         };
         fileReader.readAsArrayBuffer(eventBlob.data);
       }

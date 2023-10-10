@@ -1,5 +1,4 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
-import { Buffer } from "buffer/";
 
 import { PackedGrid } from "react-packed-grid";
 import ReactPlayer from "react-player";
@@ -25,6 +24,7 @@ function GridItemPlaceholder({ children }) {
 }
 
 const ResponsiveApp = () => {
+  const CODECS = "video/webm;codecs=vp9,opus";
   const {
     stream,
     error,
@@ -34,7 +34,7 @@ const ResponsiveApp = () => {
     stopStreamingData,
   } = useUserMedia({
     constraints: { audio: true, video: true },
-    mimeType: "video/webm;codecs=vp9,opus",
+    mimeType: CODECS,
     recorderTimeSlice: 50,
   });
 
@@ -55,48 +55,129 @@ const ResponsiveApp = () => {
   const [aspectRatio, setAspectRatio] = useState(1);
   const videoRef = useRef();
   const sourceBufferRef = useRef();
-  const mediaSource = new MediaSource();
+  const mediaSource = useRef();
 
   useEffect(() => {
-    const start = async () => {
-      await startStream();
-    };
-    if (!stream) {
-      start();
-    } else {
-      mediaSource.addEventListener("sourceopen", () => {
-        sourceBufferRef.current = mediaSource.addSourceBuffer(
-          "video/webm;codecs=vp9,opus"
-        );
-
-        startStreamingData((newData) => {
-          sendToAllPeers(Buffer.from(newData));
-          // sourceBufferRef.current.appendBuffer(Buffer.from(newData));
-        });
-      });
-      mediaSource.addEventListener("sourceclose", (e) =>
-        console.log("sourceclose", e)
-      );
-      mediaSource.addEventListener("sourceended", (e) =>
-        console.log("sourceended", e)
-      );
-
-      videoRef.current.src = URL.createObjectURL(mediaSource);
+    if (roomId) {
+      const start = async () => {
+        await startStream();
+      };
+      if (!stream) start();
+      return cancelStream;
     }
-
-    return () => {
-      cancelStream();
-      stopStreamingData();
-    };
   }, [roomId]);
+
+  // useEffect(() => {
+  //   if (stream) {
+  //     startStreamingData((newData) => {
+  //       sendToAllPeers(newData);
+  //       try {
+  //         if (sourceBufferRef.current) {
+  //           sourceBufferRef.current.appendBuffer(newData);
+  //         } else {
+  //           console.log("No Buffer");
+  //         }
+  //       } catch (error) {
+  //         console.error(error);
+  //       }
+  //     });
+  //   }
+  //   return stopStreamingData;
+  // }, [stream]);
 
   useEffect(() => {
     if (peers && peers.length > 0) {
-      addDataListerner(peers[0], ({ data, remoteId }) => {
-        sourceBufferRef.current.appendBuffer(data);
+      mediaSource.current = new MediaSource();
+      mediaSource.current.addEventListener("sourceclose", (...e) =>
+        console.log("sourceclose", ...e)
+      );
+      mediaSource.current.addEventListener("sourceended", (...e) =>
+        console.log("sourceended", ...e)
+      );
+
+      mediaSource.current.addEventListener("sourceopen", () => {
+        sourceBufferRef.current = mediaSource.current.addSourceBuffer(CODECS);
+
+        startStreamingData((newData) => {
+          sendToAllPeers(newData);
+          try {
+            // if (sourceBufferRef.current) {
+            //   sourceBufferRef.current.appendBuffer(newData);
+            // } else {
+            //   console.log("No Buffer");
+            // }
+          } catch (error) {
+            console.error(error);
+          }
+        });
+
+        addDataListerner(peers[0], ({ data, remoteId }) => {
+          console.log(mediaSource.current.readyState, "New Data", remoteId);
+          console.log(data);
+          if (sourceBufferRef.current) {
+            try {
+              if (sourceBufferRef.current) {
+                sourceBufferRef.current.appendBuffer(data);
+              }
+              // const blob = new Blob([data], { type: CODECS });
+              // const fileReader = new FileReader();
+              // fileReader.onloadend = () =>
+              //   sourceBufferRef.current.appendBuffer(fileReader.result);
+              // fileReader.readAsArrayBuffer(blob);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        });
       });
+
+      videoRef.current.src = URL.createObjectURL(mediaSource.current);
     }
   }, [peers]);
+
+  // useEffect(() => {
+  //   console.log("useEffect:roomId");
+  //
+  //  else {
+  //   mediaSource.current.addEventListener("sourceopen", () => {
+  //     sourceBufferRef.current = mediaSource.current.addSourceBuffer(
+  //       CODECS
+  //     );
+
+  //     startStreamingData((newData) => {
+  //       sendToAllPeers(newData);
+  //       console.log("sendToAllPeers", mediaSource.current.readyState);
+  //       // sourceBufferRef.current.appendBuffer(newData);
+  //     });
+  //   });
+
+  //   videoRef.current.src = URL.createObjectURL(mediaSource.current);
+  // }
+
+  // return () => {
+  //   cancelStream();
+  //   stopStreamingData();
+  // };
+  // }, [roomId]);
+
+  // useEffect(() => {
+  //   console.log("useEffect:peers");
+  //   if (peers && peers.length > 0) {
+  //     addDataListerner(peers[0], ({ data, remoteId }) => {
+  //       console.log(mediaSource.current.readyState, "New Data", remoteId);
+  //       console.log(data);
+  //       if (sourceBufferRef.current) {
+  //         try {
+  //           // if (!sourceBufferRef.current.updating)
+  //           console.log(sourceBufferRef);
+  //           sourceBufferRef.current.appendBuffer(data);
+  //         } catch (error) {
+  //           console.error(error);
+  //         }
+  //       }
+  //     });
+  //   }
+  // }, [peers]);
 
   return (
     <>
@@ -156,26 +237,28 @@ const ResponsiveApp = () => {
           ></video>
         </GridItemPlaceholder>
 
-        {Array.from({ length: 1 }).map((_, idx) => (
-          <GridItemPlaceholder key={idx} stream={stream}>
-            <video
-              style={{
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                top: "0",
-                objectFit: "cover",
-              }}
-              autoPlay
-              ref={(video) => {
-                if (video) {
-                  video.srcObject = stream;
-                }
-              }}
-              //   src={stream}
-            ></video>
-          </GridItemPlaceholder>
-        ))}
+        <GridItemPlaceholder key={1} stream={stream}>
+          <video
+            style={{
+              width: "100%",
+              height: "100%",
+              position: "absolute",
+              top: "0",
+              objectFit: "cover",
+            }}
+            autoPlay
+            ref={(video) => {
+              if (video) {
+                video.srcObject = stream;
+              }
+            }}
+            //   src={stream}
+          ></video>
+        </GridItemPlaceholder>
+
+        {/* {Array.from({ length: peers.length }).map((_, idx) => (
+         
+        ))} */}
       </PackedGrid>
     </>
   );

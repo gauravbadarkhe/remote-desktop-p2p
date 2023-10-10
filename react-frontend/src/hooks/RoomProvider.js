@@ -12,27 +12,32 @@ export const RoomProvider = ({ children }) => {
 
   const initRoom = async (remoteRoomId) => {
     try {
-      console.log(remoteRoomId);
-      const roomId = await window.bridge.Room_Init(remoteRoomId);
-      console.log(roomId);
-      setRoomId(roomId);
-
-      window.bridge.newPeerConnection((peerConn, conn) => {
-        videoPeers.current[peerConn] = { callback: null, connectin: conn };
+      const newPeerConnection = (peerConn) => {
+        videoPeers.current[peerConn] = { callback: null };
         let newPeers = [...peersRef.current, peerConn];
+        console.log("newPeers", newPeers);
         setPeers(newPeers);
         // setPeers([1, 2, 3, 4]);
-      });
+      };
 
-      window.bridge.newData(({ data, remoteId }) => {
+      const newData = ({ data, remoteId }) => {
         let videoPeerObj = videoPeers.current[remoteId];
         if (videoPeerObj && videoPeerObj.callback) {
           videoPeerObj.callback({ data, remoteId });
         } else {
-          console.log("UNable to send data");
+          console.log("UNable to send data", videoPeers.current);
         }
-        console.log("newData", remoteId, data);
-      });
+        // console.log("newData", remoteId, data);
+      };
+
+      const roomId = await window.bridge.Room_Init(
+        remoteRoomId,
+        newPeerConnection,
+        newData
+      );
+      console.log(roomId);
+      setRoomId(roomId);
+
       return;
     } catch (error) {
       console.error(error);
@@ -43,6 +48,7 @@ export const RoomProvider = ({ children }) => {
     console.log("leaveRoom");
     window.bridge.leaveRoom();
     setRoomId(null);
+    setPeers([]);
   };
 
   const sendToAllPeers = (buffer) => {
@@ -50,7 +56,12 @@ export const RoomProvider = ({ children }) => {
   };
 
   const addDataListerner = (remotePeerId, callback) => {
-    videoPeers.current[remotePeerId]["callback"] = callback;
+    if (!videoPeers.current[remotePeerId]) {
+      console.log("Cannot add Callback", videoPeers.current);
+    } else {
+      console.log("Adding Listerer For Peer", remotePeerId);
+      videoPeers.current[remotePeerId]["callback"] = callback;
+    }
   };
 
   return (
