@@ -9,13 +9,13 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
 
   useEffect(() => {
     const sourceOpened = () => {
+      if (mediaRef.current?.sourceBuffers.length > 0) return;
       console.log("sourceopen");
 
       sourceBuffer.current = mediaRef.current.addSourceBuffer(
-        "video/webm;codecs=vp9,opus"
+        'video/webm; codecs="vp9,opus"'
       );
-      sourceBuffer.current.onupdateend = () => console.log("onupdateend");
-      sourceBuffer.current.onupdatestart = () => console.log("onupdatestart");
+
       createDataListerner();
     };
 
@@ -23,7 +23,16 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
       addDataListerner(remotePeerId, ({ data, remoteId }) => {
         console.log(`Data From remote : `, remoteId, data);
         try {
-          sourceBuffer.current.appendBuffer(data);
+          sourceBuffer.current.onupdateend = () => console.log("onupdateend");
+          sourceBuffer.current.onupdatestart = () =>
+            console.log("onupdatestart");
+          setTimeout(() => {
+            console.log(
+              "activeSourceBuffers",
+              mediaRef.current.sourceBuffers[0]
+            );
+            sourceBuffer.current.appendBuffer(data);
+          }, 2000);
         } catch (error) {
           console.error(error);
         }
@@ -33,15 +42,20 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
     if (isLocal) {
       videoRef.current.srcObject = localStream;
     } else {
-      mediaRef.current = new MediaSource();
-      mediaRef.current.addEventListener("sourceopen", sourceOpened);
-      mediaRef.current.addEventListener("sourceclose", (e) =>
-        console.log("sourceclose", e)
-      );
-      mediaRef.current.addEventListener("sourceended", (e) =>
-        console.log("sourceended", e)
-      );
-      videoRef.current.src = URL.createObjectURL(mediaRef.current);
+      if (!videoRef.current?.src) {
+        console.log("SRC Added");
+        mediaRef.current = new MediaSource();
+        mediaRef.current.addEventListener("sourceopen", sourceOpened);
+        mediaRef.current.addEventListener("sourceclose", (e) =>
+          console.log("sourceclose", e)
+        );
+        mediaRef.current.addEventListener("sourceended", (e) =>
+          console.log("sourceended", e)
+        );
+        videoRef.current.src = URL.createObjectURL(mediaRef.current);
+      } else {
+        console.log("Noo Need to add SRC");
+      }
     }
   }, [remotePeerId]);
 

@@ -26,7 +26,7 @@ function GridItemPlaceholder({ children }) {
 }
 
 const ResponsiveApp = () => {
-  const CODECS = "video/webm;codecs=vp9,opus";
+  const CODECS = 'video/webm; codecs="vp9,opus"';
   const {
     stream,
     error,
