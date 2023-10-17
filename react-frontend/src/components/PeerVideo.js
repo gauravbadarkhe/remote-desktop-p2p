@@ -1,68 +1,61 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRoom } from "../hooks/RoomProvider";
 import { Buffer } from "buffer/";
+import { CODECS } from "../constants";
 export function PeerVideo({ localStream, remotePeerId, isLocal }) {
-  const { addDataListerner } = useRoom();
-  const sourceBuffer = useRef();
-  const mediaRef = useRef();
+  const { addDataListerner, removeDataListerner } = useRoom();
+  const [mediaSource, setMediaSource] = useState();
+  const [sourceBuffer, setSourceBuffer] = useState();
+
   const videoRef = useRef();
+  const TAG = "PeerVideo";
 
   useEffect(() => {
-    console.log("useEffect__PeerrVid");
-    const sourceOpened = () => {
-      console.info("sourceBuffer.current", "Init");
-
-      if (mediaRef.current?.sourceBuffers.length > 0) return;
-      console.log("sourceopen");
-
-      sourceBuffer.current = mediaRef.current.addSourceBuffer(
-        'video/webm; codecs="vp9,opus"'
+    if (mediaSource) {
+      mediaSource.addEventListener("sourceclose", (e) =>
+        console.log(TAG, "sourceclose", e)
       );
-      console.info("sourceBuffer.current", sourceBuffer.current);
 
-      createDataListerner();
-    };
+      mediaSource.addEventListener("sourceended", (e) =>
+        console.log(TAG, "sourceended", e)
+      );
 
-    const createDataListerner = () => {
-      addDataListerner(remotePeerId, ({ data, remoteId }) => {
-        console.log(`Data From remote : `, remoteId, data);
-        try {
-          sourceBuffer.current.onupdateend = () => console.log("onupdateend");
-          sourceBuffer.current.onupdatestart = () =>
-            console.log("onupdatestart");
-          sourceBuffer.current.appendBuffer(data);
-          // setTimeout(() => {
-          //   console.log(
-          //     "activeSourceBuffers",
-          //     mediaRef.current.sourceBuffers[0]
-          //   );
-          //   sourceBuffer.current.appendBuffer(data);
-          // }, 2000);
-        } catch (error) {
-          console.error(error);
-        }
+      mediaSource.addEventListener("sourceopen", () => {
+        const buffer = mediaSource.addSourceBuffer(CODECS);
+
+        addDataListerner(remotePeerId, ({ data, remoteId }) => {
+          console.log(TAG, "New Data", sourceBuffer);
+
+          buffer.appendBuffer(data);
+        });
+        // setSourceBuffer(mediaSource.addSourceBuffer(CODECS));
       });
+      videoRef.current.src = URL.createObjectURL(mediaSource);
+    }
+    return () => {
+      removeDataListerner(remotePeerId);
     };
+  }, [mediaSource]);
 
+  // useEffect(() => {
+  //   if (sourceBuffer) {
+  //     addDataListerner(remotePeerId, ({ data, remoteId }) => {
+  //       console.log(TAG,"New Data", sourceBuffer);
+  //       sourceBuffer.appendBuffer(data);
+  //     });
+  //   }
+  // }, [sourceBuffer]);
+
+  useEffect(() => {
+    console.log(TAG, "useEffect__PeerrVid");
     if (isLocal) {
       videoRef.current.srcObject = localStream;
     } else {
-      if (!videoRef.current?.src) {
-        console.log("SRC Added");
-        mediaRef.current = new MediaSource();
-        mediaRef.current.addEventListener("sourceopen", sourceOpened);
-        mediaRef.current.addEventListener("sourceclose", (e) =>
-          console.log("sourceclose", e)
-        );
-        mediaRef.current.addEventListener("sourceended", (e) =>
-          console.log("sourceended", e)
-        );
-        videoRef.current.src = URL.createObjectURL(mediaRef.current);
-      } else {
-        console.log("Noo Need to add SRC");
+      if (videoRef.current) {
+        setMediaSource(new MediaSource());
       }
     }
-  }, [isLocal, localStream, remotePeerId]);
+  }, [isLocal, localStream]);
 
   return (
     <video

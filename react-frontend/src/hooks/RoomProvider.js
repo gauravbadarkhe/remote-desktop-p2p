@@ -62,6 +62,14 @@ export const RoomProvider = ({ children }) => {
     } else {
       console.log("Adding Listerer For Peer", remotePeerId);
       videoPeers.current[remotePeerId]["callback"] = callback;
+      console.log(videoPeers.current);
+    }
+  };
+
+  const removeDataListerner = (remotePeerId) => {
+    if (videoPeers.current[remotePeerId]) {
+      videoPeers.current[remotePeerId]["callback"] = null;
+      console.log("removeDataListerner ", remotePeerId);
     }
   };
 
@@ -74,6 +82,7 @@ export const RoomProvider = ({ children }) => {
         leaveRoom,
         sendToAllPeers,
         addDataListerner,
+        removeDataListerner,
       }}
     >
       {children}

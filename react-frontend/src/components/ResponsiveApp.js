@@ -6,6 +6,7 @@ import { useUserMedia } from "../hooks/UserMediaProvider";
 import { useRoom } from "../hooks/RoomProvider";
 import { forIn } from "lodash";
 import { PeerVideo } from "./PeerVideo";
+import { CODECS } from "../constants";
 
 function GridItemPlaceholder({ children }) {
   return (
@@ -26,7 +27,6 @@ function GridItemPlaceholder({ children }) {
 }
 
 const ResponsiveApp = () => {
-  const CODECS = 'video/webm; codecs="vp9,opus"';
   const {
     stream,
     error,
@@ -69,47 +69,58 @@ const ResponsiveApp = () => {
     }
   }, [roomId]);
 
-  useEffect(() => {
-    if (stream) {
-      startStreamingData((newData) => {
-        sendToAllPeers(newData);
-      });
-    }
-  }, [stream]);
+  // useEffect(() => {
+  //   if (stream) {
+  //     console.log("THis is gb");
+  //     startStreamingData((newData) => {
+  //       sendToAllPeers(newData);
+  //     });
+  //   }
+  // }, [stream]);
 
   useEffect(() => {
     if (peers && peers.length > 0) {
-      mediaSource.current = new MediaSource();
-      mediaSource.current.addEventListener("sourceclose", (...e) =>
-        console.log("sourceclose", ...e)
-      );
-      mediaSource.current.addEventListener("sourceended", (...e) =>
-        console.log("sourceended", ...e)
-      );
-
-      mediaSource.current.addEventListener("sourceopen", () => {
-        sourceBufferRef.current = mediaSource.current.addSourceBuffer(CODECS);
-
-        addDataListerner(peers[0], ({ data, remoteId }) => {
-          console.log(mediaSource.current.readyState, "New Data", remoteId);
-
-          try {
-            if (sourceBufferRef.current) {
-              sourceBufferRef.current.appendBuffer(data);
-            }
-            // const blob = new Blob([data], { type: CODECS });
-            // const fileReader = new FileReader();
-            // fileReader.onloadend = () =>
-            //   sourceBufferRef.current.appendBuffer(fileReader.result);
-            // fileReader.readAsArrayBuffer(blob);
-          } catch (error) {
-            console.error(error);
-          }
-        });
+      startStreamingData((newData) => {
+        sendToAllPeers(newData);
       });
 
-      videoRef.current.src = URL.createObjectURL(mediaSource.current);
+      // mediaSource.current = new MediaSource();
+      // mediaSource.current.addEventListener("sourceclose", (...e) =>
+      //   console.log("sourceclose", ...e)
+      // );
+      // mediaSource.current.addEventListener("sourceended", (...e) =>
+      //   console.log("sourceended", ...e)
+      // );
+
+      // mediaSource.current.addEventListener("sourceopen", () => {
+      //   sourceBufferRef.current = mediaSource.current.addSourceBuffer(CODECS);
+
+      //   addDataListerner(peers[0], ({ data, remoteId }) => {
+      //     console.log(mediaSource.current.readyState, "New Data", remoteId);
+
+      //     try {
+      //       if (sourceBufferRef.current) {
+      //         sourceBufferRef.current.appendBuffer(data);
+      //       }
+      //       // const blob = new Blob([data], { type: CODECS });
+      //       // const fileReader = new FileReader();
+      //       // fileReader.onloadend = () =>
+      //       //   sourceBufferRef.current.appendBuffer(fileReader.result);
+      //       // fileReader.readAsArrayBuffer(blob);
+      //     } catch (error) {
+      //       console.error(error);
+      //     }
+      //   });
+      // });
+
+      // videoRef.current.src = URL.createObjectURL(mediaSource.current);
     }
+
+    // if (stream) {
+    //   startStreamingData((newData) => {
+    //     sendToAllPeers(newData);
+    //   });
+    // }
   }, [peers]);
 
   return (
@@ -168,34 +179,35 @@ const ResponsiveApp = () => {
             ></PeerVideo>
           </GridItemPlaceholder>
         )}
-        {peers && peers.length > 0 && (
-          <video
-            muted
-            className="peer-video"
-            autoPlay
-            style={{
-              width: "100%",
-              height: "100%",
-              position: "absolute",
-              top: "0",
-              objectFit: "cover",
-            }}
-            ref={videoRef}
-            //   ref={(video) => {
-            //     if (video && localStream) {
-            //       video.srcObject = localStream;
-            //     }
-            //   }}
-          ></video>
-        )}
-
-        {/* {Array.from({ length: peers.length }).map((_, idx) => {
+        {/* <GridItemPlaceholder key={343}>
+          {peers && peers.length > 0 && (
+            <video
+              muted
+              className="peer-video"
+              autoPlay
+              style={{
+                width: "100%",
+                height: "100%",
+                position: "absolute",
+                top: "0",
+                objectFit: "cover",
+              }}
+              ref={videoRef}
+              //   ref={(video) => {
+              //     if (video && localStream) {
+              //       video.srcObject = localStream;
+              //     }
+              //   }}
+            ></video>
+          )}
+        </GridItemPlaceholder> */}
+        {Array.from({ length: peers.length }).map((_, idx) => {
           return (
             <GridItemPlaceholder key={idx}>
               <PeerVideo remotePeerId={peers[idx]}></PeerVideo>
             </GridItemPlaceholder>
           );
-        })} */}
+        })}
       </PackedGrid>
     </>
   );

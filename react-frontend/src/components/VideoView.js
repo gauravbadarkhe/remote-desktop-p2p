@@ -44,25 +44,23 @@ export function VideoView() {
   const updateLayoutRef = useRef();
 
   useEffect(() => {
-    async function tempF() {
-      if (!stream && roomId) {
+    if (roomId) {
+      const start = async () => {
         await startStream();
-        console.log("startStream", stream);
-      }
+      };
+      if (!stream) start();
+      return cancelStream;
     }
-    tempF();
-
-    return cancelStream;
   }, [roomId]);
 
   useEffect(() => {
-    if (stream) {
+    if (peers && peers.length > 0) {
       startStreamingData((newData) => {
         sendToAllPeers(Buffer.from(newData));
       });
     }
     return stopStreamingData;
-  }, [stream]);
+  }, [peers]);
 
   //
   return (
