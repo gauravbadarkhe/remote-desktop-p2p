@@ -65,6 +65,7 @@ export const useUserMedia = ({ constraints, mimeType, timeSlice = 500 }) => {
     if (stream?.stop) {
       stream.stop();
     }
+    setStream(null);
   };
 
   return {

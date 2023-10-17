@@ -79,23 +79,6 @@ export function VideoView() {
         return (
           <GridItemPlaceholder key={peers[idx]}>
             <PeerVideo remotePeerId={peers[idx]}></PeerVideo>
-            {/* <video
-              muted
-              style={{
-                width: "100%",
-                height: "100%",
-                position: "absolute",
-                top: "0",
-                objectFit: "cover",
-              }}
-              autoPlay
-              ref={(video) => {
-                if (video) {
-                  video.srcObject = stream;
-                }
-              }}
-              src={stream}
-            ></video> */}
           </GridItemPlaceholder>
         );
       })}

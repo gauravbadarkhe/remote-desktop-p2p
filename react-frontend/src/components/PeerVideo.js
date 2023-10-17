@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import { useRoom } from "../hooks/RoomProvider";
-import { Buffer } from "buffer/";
 import { CODECS } from "../constants";
 export function PeerVideo({ localStream, remotePeerId, isLocal }) {
   const { addDataListerner, removeDataListerner } = useRoom();
@@ -24,18 +23,35 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
         const buffer = mediaSource.addSourceBuffer(CODECS);
 
         addDataListerner(remotePeerId, ({ data, remoteId }) => {
-          console.log(TAG, "New Data", sourceBuffer);
+          // console.log(TAG, "New Data", buffer);
 
-          buffer.appendBuffer(data);
+          try {
+            buffer.appendBuffer(data);
+          } catch (error) {
+            console.error(error);
+          }
         });
         // setSourceBuffer(mediaSource.addSourceBuffer(CODECS));
       });
       videoRef.current.src = URL.createObjectURL(mediaSource);
+
+      videoRef.current.onsuspend = (event) => {
+        console.log(TAG, "Video is onsuspend.");
+      };
+
+      videoRef.current.onpause = (event) => {
+        console.log(TAG, "Video is paused.");
+      };
+      videoRef.current.onplaying = (event) => {
+        console.log(TAG, "Video is no longer paused.");
+      };
+
+      videoRef.current.play().catch((err) => console.error(err));
     }
     return () => {
       removeDataListerner(remotePeerId);
     };
-  }, [mediaSource]);
+  }, [mediaSource, remotePeerId]);
 
   // useEffect(() => {
   //   if (sourceBuffer) {
@@ -50,6 +66,8 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
     console.log(TAG, "useEffect__PeerrVid");
     if (isLocal) {
       videoRef.current.srcObject = localStream;
+
+      videoRef.current.play().catch((err) => console.error(err));
     } else {
       if (videoRef.current) {
         setMediaSource(new MediaSource());
@@ -61,7 +79,6 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
     <video
       muted
       className="peer-video"
-      autoPlay
       style={{
         width: "100%",
         height: "100%",
