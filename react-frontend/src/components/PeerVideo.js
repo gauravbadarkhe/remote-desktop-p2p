@@ -8,13 +8,17 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
   const videoRef = useRef();
 
   useEffect(() => {
+    console.log("useEffect__PeerrVid");
     const sourceOpened = () => {
+      console.info("sourceBuffer.current", "Init");
+
       if (mediaRef.current?.sourceBuffers.length > 0) return;
       console.log("sourceopen");
 
       sourceBuffer.current = mediaRef.current.addSourceBuffer(
         'video/webm; codecs="vp9,opus"'
       );
+      console.info("sourceBuffer.current", sourceBuffer.current);
 
       createDataListerner();
     };
@@ -26,13 +30,14 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
           sourceBuffer.current.onupdateend = () => console.log("onupdateend");
           sourceBuffer.current.onupdatestart = () =>
             console.log("onupdatestart");
-          setTimeout(() => {
-            console.log(
-              "activeSourceBuffers",
-              mediaRef.current.sourceBuffers[0]
-            );
-            sourceBuffer.current.appendBuffer(data);
-          }, 2000);
+          sourceBuffer.current.appendBuffer(data);
+          // setTimeout(() => {
+          //   console.log(
+          //     "activeSourceBuffers",
+          //     mediaRef.current.sourceBuffers[0]
+          //   );
+          //   sourceBuffer.current.appendBuffer(data);
+          // }, 2000);
         } catch (error) {
           console.error(error);
         }
@@ -57,7 +62,7 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
         console.log("Noo Need to add SRC");
       }
     }
-  }, [remotePeerId]);
+  }, [isLocal, localStream, remotePeerId]);
 
   return (
     <video

@@ -77,42 +77,40 @@ const ResponsiveApp = () => {
     }
   }, [stream]);
 
-  // useEffect(() => {
-  //   if (peers && peers.length > 0) {
-  //     mediaSource.current = new MediaSource();
-  //     mediaSource.current.addEventListener("sourceclose", (...e) =>
-  //       console.log("sourceclose", ...e)
-  //     );
-  //     mediaSource.current.addEventListener("sourceended", (...e) =>
-  //       console.log("sourceended", ...e)
-  //     );
+  useEffect(() => {
+    if (peers && peers.length > 0) {
+      mediaSource.current = new MediaSource();
+      mediaSource.current.addEventListener("sourceclose", (...e) =>
+        console.log("sourceclose", ...e)
+      );
+      mediaSource.current.addEventListener("sourceended", (...e) =>
+        console.log("sourceended", ...e)
+      );
 
-  //     mediaSource.current.addEventListener("sourceopen", () => {
-  //       sourceBufferRef.current = mediaSource.current.addSourceBuffer(CODECS);
+      mediaSource.current.addEventListener("sourceopen", () => {
+        sourceBufferRef.current = mediaSource.current.addSourceBuffer(CODECS);
 
-  //       addDataListerner(peers[0], ({ data, remoteId }) => {
-  //         console.log(mediaSource.current.readyState, "New Data", remoteId);
+        addDataListerner(peers[0], ({ data, remoteId }) => {
+          console.log(mediaSource.current.readyState, "New Data", remoteId);
 
-  //         if (sourceBufferRef.current) {
-  //           try {
-  //             if (sourceBufferRef.current) {
-  //               sourceBufferRef.current.appendBuffer(data);
-  //             }
-  //             // const blob = new Blob([data], { type: CODECS });
-  //             // const fileReader = new FileReader();
-  //             // fileReader.onloadend = () =>
-  //             //   sourceBufferRef.current.appendBuffer(fileReader.result);
-  //             // fileReader.readAsArrayBuffer(blob);
-  //           } catch (error) {
-  //             console.error(error);
-  //           }
-  //         }
-  //       });
-  //     });
+          try {
+            if (sourceBufferRef.current) {
+              sourceBufferRef.current.appendBuffer(data);
+            }
+            // const blob = new Blob([data], { type: CODECS });
+            // const fileReader = new FileReader();
+            // fileReader.onloadend = () =>
+            //   sourceBufferRef.current.appendBuffer(fileReader.result);
+            // fileReader.readAsArrayBuffer(blob);
+          } catch (error) {
+            console.error(error);
+          }
+        });
+      });
 
-  //     videoRef.current.src = URL.createObjectURL(mediaSource.current);
-  //   }
-  // }, [peers]);
+      videoRef.current.src = URL.createObjectURL(mediaSource.current);
+    }
+  }, [peers]);
 
   return (
     <>
@@ -170,14 +168,34 @@ const ResponsiveApp = () => {
             ></PeerVideo>
           </GridItemPlaceholder>
         )}
+        {peers && peers.length > 0 && (
+          <video
+            muted
+            className="peer-video"
+            autoPlay
+            style={{
+              width: "100%",
+              height: "100%",
+              position: "absolute",
+              top: "0",
+              objectFit: "cover",
+            }}
+            ref={videoRef}
+            //   ref={(video) => {
+            //     if (video && localStream) {
+            //       video.srcObject = localStream;
+            //     }
+            //   }}
+          ></video>
+        )}
 
-        {Array.from({ length: peers.length }).map((_, idx) => {
+        {/* {Array.from({ length: peers.length }).map((_, idx) => {
           return (
-            <GridItemPlaceholder key={idx} stream={stream}>
+            <GridItemPlaceholder key={idx}>
               <PeerVideo remotePeerId={peers[idx]}></PeerVideo>
             </GridItemPlaceholder>
           );
-        })}
+        })} */}
       </PackedGrid>
     </>
   );
