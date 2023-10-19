@@ -21,8 +21,8 @@ contextBridge.exposeInMainWorld("bridge", {
   sendData: (data) => sendData(data),
   // newData: (callback) => listenToData(callback),
   // newPeerConnection: (callback) => listenToConnection(callback),
-  Room_Init: (roomId, newPeerConnection, newData) =>
-    initRoom(roomId, newPeerConnection, newData),
+  Room_Init: (roomId, newPeerConnection, peerClosedCallback, newData) =>
+    initRoom(roomId, newPeerConnection, peerClosedCallback, newData),
 });
 
 // contextBridge.exposeInMainWorld("versions", {
@@ -63,18 +63,32 @@ function listenToConnection(callback) {
   });
 }
 
+function listenToConnectionClose(callback) {
+  Room.on("close", async (remoteId, conn) => {
+    console.log("New Connection");
+
+    callback(remoteId);
+  });
+}
+
 function listenToData(callback) {
   Room.on("data", ({ remoteId, data }) => {
     // console.log("Data", data.toString());
     callback({ remoteId: remoteId, data: data });
   });
 }
-async function initRoom(roomId, newPeerCallback, newDataCallback) {
+async function initRoom(
+  roomId,
+  newPeerCallback,
+  peerClosedCallback,
+  newDataCallback
+) {
   try {
     if (Room) leaveRoom();
     Room = new RoomUtils();
     listenToConnection(newPeerCallback);
     listenToData(newDataCallback);
+    listenToConnectionClose(peerClosedCallback);
     Room.initEvents();
     const _roomId = await Room.initRoom(roomId);
     return _roomId;

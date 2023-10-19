@@ -20,6 +20,14 @@ export const RoomProvider = ({ children }) => {
         // setPeers([1, 2, 3, 4]);
       };
 
+      const peerConnectionClosed = (peerConn) => {
+        const index = peersRef.current.indexOf(peerConn);
+        console.log("Peer Removed", peerConn, index, peers);
+        delete videoPeers.current[peerConn];
+
+        setPeers(peersRef.current.filter((_, i) => i !== index));
+      };
+
       const newData = ({ data, remoteId }) => {
         let videoPeerObj = videoPeers.current[remoteId];
         if (videoPeerObj && videoPeerObj.callback) {
@@ -33,6 +41,7 @@ export const RoomProvider = ({ children }) => {
       const roomId = await window.bridge.Room_Init(
         remoteRoomId,
         newPeerConnection,
+        peerConnectionClosed,
         newData
       );
       console.log(roomId);

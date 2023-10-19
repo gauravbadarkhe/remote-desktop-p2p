@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Buffer } from "buffer/";
 
-export const useUserMedia = ({ constraints, mimeType, timeSlice = 500 }) => {
+export const useUserMedia = ({ constraints, mimeType, timeSlice = 200 }) => {
   const [status, setStatus] = useState(null);
   const [recorderTimeSlice, setTimeSlice] = useState(timeSlice);
   const [stream, setStream] = useState(null);

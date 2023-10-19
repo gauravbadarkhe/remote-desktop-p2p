@@ -17,7 +17,7 @@ export function ChatView() {
           margin: "auto",
         }}
       >
-        Total Peers : {peers.length}
+        Total Peers : {peers.length + 1}
       </Box>
     </Box>
   );

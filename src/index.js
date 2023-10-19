@@ -7,27 +7,24 @@ const {
   Menu,
 } = require("electron");
 const path = require("path");
-const os = require("os");
-require("electron-reload")(path.join(__dirname, "ui/"));
 
-// try {
-//   require("electron-reloader")(module, {
-//     debug: true,
-//     watchRenderer: true,
-//   });
-// } catch (_) {
-//   console.log("Error");
-// }
+const installExtensions = async () => {
+  const options = {
+    loadExtensionOptions: { allowFileAccess: true },
+  };
+  installExtension(REACT_DEVELOPER_TOOLS, {
+    loadExtensionOptions: {
+      allowFileAccess: true,
+    },
+  });
+};
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require("electron-squirrel-startup")) {
   app.quit();
 }
 let mainWindow;
-const reactDevToolsPath = path.join(
-  os.homedir(),
-  "/Library/Application Support/Google/Chrome/Default/Extensions/fmkadmapgofadopljbjfkapdkoienihi/4.28.0_0/"
-);
+
 const createWindow = () => {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -46,22 +43,24 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
-  // console.log("reactDevToolsPath", reactDevToolsPath);
 };
 
-// app.whenReady().then(async () => {
-//   try {
-//     await session.defaultSession.loadExtension(reactDevToolsPath);
-//   } catch (error) {
-//     console.error(error);
-//   }
+// app.whenReady().then(() => {
+//   installExtension(
+//     [
+//       REACT_DEVELOPER_TOOLS,
+//       installer.APOLLO_DEVELOPER_TOOLS,
+//       installer.REDUX_DEVTOOLS,
+//     ],
+//     {
+//       loadExtensionOptions: { allowFileAccess: true },
+//     }
+//   )
+//     .then((name) => console.log(`Added Extension:  ${name}`))
+//     .catch((err) => console.log("An error occurred: ", err));
 // });
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
-
-app.on("ready", () => {
+app.on("ready", async () => {
   handleIPCs(mainWindow);
 
   ipcMain.handle("connetToRemoteHost", (event, remoteId, videoElementId) => {
@@ -89,6 +88,8 @@ app.on("ready", () => {
 
   //   });
   // });
+  // await installExtensions();
+
   createWindow();
 });
 

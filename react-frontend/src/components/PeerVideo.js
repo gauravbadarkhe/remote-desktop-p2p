@@ -1,37 +1,41 @@
-import { useEffect, useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useRoom } from "../hooks/RoomProvider";
 import { CODECS } from "../constants";
 export function PeerVideo({ localStream, remotePeerId, isLocal }) {
   const { addDataListerner, removeDataListerner } = useRoom();
   const [mediaSource, setMediaSource] = useState();
-  const [sourceBuffer, setSourceBuffer] = useState();
 
   const videoRef = useRef();
+  const isPlayable = useRef();
   const TAG = "PeerVideo";
 
   useEffect(() => {
     if (mediaSource) {
-      mediaSource.addEventListener("sourceclose", (e) =>
-        console.log(TAG, "sourceclose", e)
-      );
+      mediaSource.addEventListener("sourceclose", (e) => {
+        console.log(TAG, "sourceclose", e, videoRef.current);
+        isPlayable.current = false;
+        setMediaSource(new MediaSource());
+      });
 
-      mediaSource.addEventListener("sourceended", (e) =>
-        console.log(TAG, "sourceended", e)
-      );
+      mediaSource.addEventListener("sourceended", (e) => {
+        console.log(TAG, "sourceended", e, videoRef.current);
+        isPlayable.current = false;
+        setMediaSource(new MediaSource());
+      });
 
       mediaSource.addEventListener("sourceopen", () => {
         const buffer = mediaSource.addSourceBuffer(CODECS);
-
+        isPlayable.current = true;
         addDataListerner(remotePeerId, ({ data, remoteId }) => {
           // console.log(TAG, "New Data", buffer);
-
-          try {
-            buffer.appendBuffer(data);
-          } catch (error) {
-            console.error(error);
+          if (isPlayable.current && buffer?.updating === false) {
+            try {
+              buffer.appendBuffer(data);
+            } catch (error) {
+              console.error(error);
+            }
           }
         });
-        // setSourceBuffer(mediaSource.addSourceBuffer(CODECS));
       });
       videoRef.current.src = URL.createObjectURL(mediaSource);
 
@@ -41,33 +45,32 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
 
       videoRef.current.onpause = (event) => {
         console.log(TAG, "Video is paused.");
+        // playVideo();
       };
       videoRef.current.onplaying = (event) => {
         console.log(TAG, "Video is no longer paused.");
       };
-
-      videoRef.current.play().catch((err) => console.error(err));
     }
     return () => {
       removeDataListerner(remotePeerId);
+      isPlayable.current = false;
     };
   }, [mediaSource, remotePeerId]);
 
-  // useEffect(() => {
-  //   if (sourceBuffer) {
-  //     addDataListerner(remotePeerId, ({ data, remoteId }) => {
-  //       console.log(TAG,"New Data", sourceBuffer);
-  //       sourceBuffer.appendBuffer(data);
-  //     });
-  //   }
-  // }, [sourceBuffer]);
+  const playVideo = () => {
+    if (videoRef.current) {
+      const playPromise = videoRef.current.play();
+      if (playPromise !== undefined) {
+        playPromise
+          .then(() => console.log(TAG, "Play resolved"))
+          .catch((err) => console.error(err));
+      }
+    }
+  };
 
   useEffect(() => {
-    console.log(TAG, "useEffect__PeerrVid");
     if (isLocal) {
       videoRef.current.srcObject = localStream;
-
-      videoRef.current.play().catch((err) => console.error(err));
     } else {
       if (videoRef.current) {
         setMediaSource(new MediaSource());
@@ -76,22 +79,22 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
   }, [isLocal, localStream]);
 
   return (
-    <video
-      muted
-      className="peer-video"
-      style={{
-        width: "100%",
-        height: "100%",
-        position: "absolute",
-        top: "0",
-        objectFit: "cover",
-      }}
-      ref={videoRef}
-      //   ref={(video) => {
-      //     if (video && localStream) {
-      //       video.srcObject = localStream;
-      //     }
-      //   }}
-    ></video>
+    <>
+      <video
+        autoPlay
+        className="peer-video"
+        style={{
+          width: "100%",
+          height: "100%",
+          position: "absolute",
+          top: "0",
+          objectFit: "cover",
+        }}
+        ref={videoRef}
+      ></video>
+      <span>Loading...</span>
+    </>
   );
 }
+
+export default React.memo(PeerVideo);

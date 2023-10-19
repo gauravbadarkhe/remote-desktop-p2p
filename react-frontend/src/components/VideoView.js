@@ -38,7 +38,7 @@ export function VideoView() {
   } = useUserMedia({
     constraints: { audio: true, video: true },
     mimeType: "video/webm;codecs=vp9,opus",
-    timeSlice: 500,
+    timeSlice: 200,
   });
 
   const updateLayoutRef = useRef();
@@ -75,7 +75,7 @@ export function VideoView() {
         </GridItemPlaceholder>
       )}
       {Array.from({ length: peers.length }).map((_, idx) => {
-        console.log("idx", idx);
+        console.log("idx", peers[idx]);
         return (
           <GridItemPlaceholder key={peers[idx]}>
             <PeerVideo remotePeerId={peers[idx]}></PeerVideo>
