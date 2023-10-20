@@ -49,7 +49,10 @@ export function VideoView() {
         await startStream();
       };
       if (!stream) start();
-      return cancelStream;
+      return async () => {
+        cancelStream();
+        await stopStreamingData();
+      };
     }
   }, [roomId]);
 
@@ -58,8 +61,10 @@ export function VideoView() {
       startStreamingData((newData) => {
         sendToAllPeers(Buffer.from(newData));
       });
+      return async () => {
+        await stopStreamingData();
+      };
     }
-    return stopStreamingData;
   }, [peers]);
 
   //

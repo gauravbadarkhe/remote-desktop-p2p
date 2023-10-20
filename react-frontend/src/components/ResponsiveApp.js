@@ -74,44 +74,7 @@ const ResponsiveApp = () => {
       startStreamingData((newData) => {
         sendToAllPeers(newData);
       });
-
-      // mediaSource.current = new MediaSource();
-      // mediaSource.current.addEventListener("sourceclose", (...e) =>
-      //   console.log("sourceclose", ...e)
-      // );
-      // mediaSource.current.addEventListener("sourceended", (...e) =>
-      //   console.log("sourceended", ...e)
-      // );
-
-      // mediaSource.current.addEventListener("sourceopen", () => {
-      //   sourceBufferRef.current = mediaSource.current.addSourceBuffer(CODECS);
-
-      //   addDataListerner(peers[0], ({ data, remoteId }) => {
-      //     console.log(mediaSource.current.readyState, "New Data", remoteId);
-
-      //     try {
-      //       if (sourceBufferRef.current) {
-      //         sourceBufferRef.current.appendBuffer(data);
-      //       }
-      //       // const blob = new Blob([data], { type: CODECS });
-      //       // const fileReader = new FileReader();
-      //       // fileReader.onloadend = () =>
-      //       //   sourceBufferRef.current.appendBuffer(fileReader.result);
-      //       // fileReader.readAsArrayBuffer(blob);
-      //     } catch (error) {
-      //       console.error(error);
-      //     }
-      //   });
-      // });
-
-      // videoRef.current.src = URL.createObjectURL(mediaSource.current);
     }
-
-    // if (stream) {
-    //   startStreamingData((newData) => {
-    //     sendToAllPeers(newData);
-    //   });
-    // }
   }, [peers]);
 
   return (

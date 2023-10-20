@@ -14,12 +14,19 @@ module.exports = class RoomUtils extends EventEmitter {
   initRoom(roomId) {
     return new Promise(async (resolve, reject) => {
       this._RoomId = roomId ? b4a.from(roomId, "hex") : crypto.randomBytes(32);
-      const discovery = this.swarm.join(this._RoomId, {
-        client: true,
-        server: true,
-      });
-      // await discovery.flushed();
-      console.log(`Joined Room ${b4a.toString(this._RoomId, "hex")}`);
+      const options = {
+        client: roomId !== undefined ? true : false,
+        server: roomId === undefined ? true : false,
+      };
+      const discovery = this.swarm.join(this._RoomId, options);
+
+      if (!roomId) await discovery.flushed();
+      console.log(
+        roomId,
+        options,
+        `Joined Room ${b4a.toString(this._RoomId, "hex")}`,
+        discovery
+      );
       resolve(b4a.toString(this._RoomId, "hex"));
     });
   }

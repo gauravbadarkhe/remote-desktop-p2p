@@ -23,6 +23,7 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
 
       mediaSource.addEventListener("sourceopen", () => {
         const buffer = mediaSource.addSourceBuffer(CODECS);
+        buffer.mode = "segments";
         isPlayable.current = true;
         addDataListerner(remotePeerId, ({ data, remoteId }) => {
           // console.log(TAG, "New Data", buffer);
@@ -36,6 +37,7 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
         });
       });
       videoRef.current.src = URL.createObjectURL(mediaSource);
+      playVideo();
 
       videoRef.current.onsuspend = (event) => {
         console.log(TAG, "Video is onsuspend.");
@@ -60,7 +62,18 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
       const playPromise = videoRef.current.play();
       if (playPromise !== undefined) {
         playPromise
-          .then(() => console.log(TAG, "Play resolved"))
+          .then(() => console.log(TAG, "Play Started"))
+          .catch((err) => console.error(err));
+      }
+    }
+  };
+
+  const pauseVideo = () => {
+    if (videoRef.current) {
+      const pausePromise = videoRef.current.pause();
+      if (pausePromise !== undefined) {
+        pausePromise
+          .then(() => console.log(TAG, "Play Paused"))
           .catch((err) => console.error(err));
       }
     }
@@ -69,6 +82,7 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
   useEffect(() => {
     if (isLocal) {
       videoRef.current.srcObject = localStream;
+      playVideo();
     } else {
       if (videoRef.current) {
         setMediaSource(new MediaSource());
@@ -76,11 +90,25 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
     }
   }, [isLocal, localStream]);
 
+  const handleClick = (e) => {
+    console.log("Clicked");
+    if (!videoRef.current) return;
+    const isVideoPlaying = () =>
+      !!(
+        videoRef.current.currentTime > 0 &&
+        !videoRef.current.paused &&
+        !videoRef.current.ended &&
+        videoRef.current.readyState > 2
+      );
+    console.log("Clicked", isVideoPlaying());
+    if (!isVideoPlaying()) playVideo();
+    else pauseVideo();
+  };
   return (
     <>
       <video
-        autoPlay
         className="peer-video"
+        onClick={handleClick}
         style={{
           width: "100%",
           height: "100%",

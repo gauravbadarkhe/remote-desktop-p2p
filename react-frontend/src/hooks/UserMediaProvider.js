@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Buffer } from "buffer/";
+import { Muxer, ArrayBufferTarget, StreamTarget } from "webm-muxer";
+import { UseVideoEncoder } from "./UseVideoEncoder";
 
 export const useUserMedia = ({ constraints, mimeType, timeSlice = 200 }) => {
   const [status, setStatus] = useState(null);
@@ -7,10 +9,17 @@ export const useUserMedia = ({ constraints, mimeType, timeSlice = 200 }) => {
   const [stream, setStream] = useState(null);
   const [error, setError] = useState(null);
   const mediaRecorder = useRef(null);
+  const { startEncoding, stopEncoding } = UseVideoEncoder({ stream: stream });
 
   useEffect(() => console.log(status), [status]);
-
   const startStreamingData = async (newDataCallback) => {
+    if (!stream) {
+      console.warn("Stream Unavalibale");
+      return;
+    }
+    startEncoding(newDataCallback);
+  };
+  const startStreamingData_old = async (newDataCallback) => {
     if (!stream) await startStream();
     mediaRecorder.current = new MediaRecorder(stream, {
       mimeType: mimeType,
@@ -38,7 +47,11 @@ export const useUserMedia = ({ constraints, mimeType, timeSlice = 200 }) => {
     setStatus("RECORDING_REQUESTED");
   };
 
-  const stopStreamingData = () => {
+  const stopStreamingData = async () => {
+    await stopEncoding();
+  };
+
+  const stopStreamingData_old = () => {
     if (mediaRecorder.current) {
       mediaRecorder.current.stop();
     }
