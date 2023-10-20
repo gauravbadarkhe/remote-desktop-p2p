@@ -14,13 +14,11 @@ export function PeerVideo({ localStream, remotePeerId, isLocal }) {
       mediaSource.addEventListener("sourceclose", (e) => {
         console.log(TAG, "sourceclose", e, videoRef.current);
         isPlayable.current = false;
-        setMediaSource(new MediaSource());
       });
 
       mediaSource.addEventListener("sourceended", (e) => {
         console.log(TAG, "sourceended", e, videoRef.current);
         isPlayable.current = false;
-        setMediaSource(new MediaSource());
       });
 
       mediaSource.addEventListener("sourceopen", () => {

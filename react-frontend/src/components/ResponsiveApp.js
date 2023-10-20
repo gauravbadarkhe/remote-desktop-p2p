@@ -69,15 +69,6 @@ const ResponsiveApp = () => {
     }
   }, [roomId]);
 
-  // useEffect(() => {
-  //   if (stream) {
-  //     console.log("THis is gb");
-  //     startStreamingData((newData) => {
-  //       sendToAllPeers(newData);
-  //     });
-  //   }
-  // }, [stream]);
-
   useEffect(() => {
     if (peers && peers.length > 0) {
       startStreamingData((newData) => {

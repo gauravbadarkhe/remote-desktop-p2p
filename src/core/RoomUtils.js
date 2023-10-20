@@ -32,7 +32,7 @@ module.exports = class RoomUtils extends EventEmitter {
     this.swarm.on("connection", (conn) => {
       const remoteId = b4a.toString(conn.remotePublicKey, "hex");
       this.emit("newconnection", remoteId);
-      console.log(`New Peer COnnected  :${remoteId}`);
+      console.log(`New Peer COnnected  :${remoteId}`, conn);
       this.conns.push(conn);
       conn.on("error", (err) => {
         this.conns.splice(this.conns.indexOf(conn), 1);
