@@ -3,8 +3,8 @@ import { useMemo, useRef, useEffect } from "react";
 import { PackedGrid } from "react-packed-grid";
 import { useRoom } from "../hooks/RoomProvider";
 import { Buffer } from "buffer/";
-
-import { PeerVideo } from "./PeerVideo";
+import cenc from "compact-encoding";
+import PeerVideo from "./PeerVideo";
 
 function GridItemPlaceholder({ children }) {
   return (
@@ -59,7 +59,7 @@ export function VideoView() {
   useEffect(() => {
     if (peers && peers.length > 0) {
       startStreamingData((newData) => {
-        sendToAllPeers(Buffer.from(newData));
+        sendToAllPeers(cenc.encode(cenc.json, newData));
       });
       return async () => {
         await stopStreamingData();

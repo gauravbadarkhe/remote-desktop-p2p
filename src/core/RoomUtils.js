@@ -51,14 +51,17 @@ module.exports = class RoomUtils extends EventEmitter {
         this.emit("close", remoteId);
       });
       conn.on("data", (data) => {
-        // console.log(`${remoteId}: ${data}`);
-        this.emit("data", { remoteId: remoteId, data: Buffer.from(data) });
+        // console.log(`${remoteId}: New data`, );
+        this.emit("data", { remoteId: remoteId, data: data });
       });
     });
   }
 
   sendDataToAllConnections(data) {
-    // console.log(`Sending data to ${this.conns.length} conns`);
+    // console.log(
+    //   `Sending data to ${this.conns.length} conns`,
+    //   Buffer.byteLength(data)
+    // );
     // console.log(data);
     for (const conn of this.conns) {
       conn.write(data);

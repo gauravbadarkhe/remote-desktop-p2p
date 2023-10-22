@@ -5,7 +5,7 @@ import ReactPlayer from "react-player";
 import { useUserMedia } from "../hooks/UserMediaProvider";
 import { useRoom } from "../hooks/RoomProvider";
 import { forIn } from "lodash";
-import { PeerVideo } from "./PeerVideo";
+import PeerVideo from "./PeerVideo";
 import { CODECS } from "../constants";
 
 function GridItemPlaceholder({ children }) {

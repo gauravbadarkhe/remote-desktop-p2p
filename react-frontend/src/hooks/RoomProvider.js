@@ -65,7 +65,6 @@ export const RoomProvider = ({ children }) => {
   };
 
   const addDataListerner = (remotePeerId, callback) => {
-    console.log("addDataListerner ", remotePeerId);
     if (!videoPeers.current[remotePeerId]) {
       console.log("Cannot add Callback", videoPeers.current);
     } else {

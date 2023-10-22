@@ -1,6 +1,8 @@
 /* eslint-disable no-undef */
 import { useRef } from "react";
 import { Muxer, StreamTarget } from "webm-muxer";
+import { Buffer } from "buffer/";
+import cenc from "compact-encoding";
 
 export const UseVideoEncoder = ({ stream }) => {
   const recording = useRef(false);
@@ -17,7 +19,12 @@ export const UseVideoEncoder = ({ stream }) => {
     muxer.current = new Muxer({
       streaming: true,
 
-      target: new StreamTarget((buffer, position) => newDataCallback(buffer)),
+      target: new StreamTarget((buffer, position) =>
+        newDataCallback({
+          data: Buffer.from(buffer).toString("base64"),
+          position: position,
+        })
+      ),
       video: videoTrack.current
         ? {
             codec: "V_VP9",
