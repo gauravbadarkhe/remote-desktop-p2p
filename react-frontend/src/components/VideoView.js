@@ -6,10 +6,11 @@ import { Buffer } from "buffer/";
 import cenc from "compact-encoding";
 import PeerVideo from "./PeerVideo";
 
-function GridItemPlaceholder({ children }) {
+function GridItemPlaceholder({ children, id }) {
   return (
     <div
       style={{
+        id: { id },
         display: "grid",
         placeContent: "center",
         position: "relative",
@@ -57,15 +58,13 @@ export function VideoView() {
   }, [roomId]);
 
   useEffect(() => {
-    if (peers && peers.length > 0) {
-      startStreamingData((newData) => {
-        sendToAllPeers(cenc.encode(cenc.json, newData));
-      });
-      return async () => {
-        await stopStreamingData();
-      };
-    }
-  }, [peers]);
+    startStreamingData((newData) => {
+      sendToAllPeers(cenc.encode(cenc.json, newData));
+    });
+    return async () => {
+      await stopStreamingData();
+    };
+  }, [stream]);
 
   //
   return (
@@ -75,14 +74,13 @@ export function VideoView() {
       updateLayoutRef={updateLayoutRef}
     >
       {roomId && stream && (
-        <GridItemPlaceholder key={"localStream"}>
+        <GridItemPlaceholder key={"localStream"} id={"local"}>
           <PeerVideo localStream={stream} isLocal></PeerVideo>
         </GridItemPlaceholder>
       )}
       {Array.from({ length: peers.length }).map((_, idx) => {
-        console.log("idx", peers[idx]);
         return (
-          <GridItemPlaceholder key={peers[idx]}>
+          <GridItemPlaceholder key={peers[idx]} id={peers[idx]}>
             <PeerVideo remotePeerId={peers[idx]}></PeerVideo>
           </GridItemPlaceholder>
         );

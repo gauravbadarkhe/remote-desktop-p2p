@@ -1,10 +1,12 @@
-import { useRef } from "react";
+import { useRef, useState } from "react";
 import { Buffer } from "buffer/";
+import zlib, { log } from "react-zlib-js";
 
 export const useStreamProcressor = ({ stream }) => {
   const audioTrack = useRef();
   const videoTrack = useRef();
   const recording = useRef(false);
+  const TAG = `StreamProcressor_${stream?.id}`;
 
   const startProcressor = (newDataCallback) => {
     audioTrack.current = stream.getAudioTracks()[0];
@@ -19,39 +21,58 @@ export const useStreamProcressor = ({ stream }) => {
     recording.current = true;
     let frameCount = 1;
     let videoConsumer = new WritableStream({
-      write(videoFrame) {
-        return new Promise(async (resolve, reject) => {
-          if (recording.current) {
-            resolve();
+      async write(videoFrame) {
+        // return new Promise(async (resolve, reject) => {
+        if (recording.current) {
+          // resolve();
+          if (frameCount % 3 === 0) {
             let buffer = new Uint8Array(videoFrame.allocationSize());
             const copyResult = await videoFrame.copyTo(buffer);
+            const { timestamp, codedWidth, codedHeight, format } = videoFrame;
+
             let data = {
               data: Buffer.from(buffer).toString("base64"),
-              timestamp: videoFrame.timestamp,
-              codedWidth: videoFrame.codedWidth,
-              codedHeight: videoFrame.codedHeight,
-              format: videoFrame.format,
+              timestamp: timestamp,
+              codedWidth: codedWidth,
+              codedHeight: codedHeight,
+              format: format,
               frameCount: frameCount,
             };
+            //   if (frameCount % 3 === 0) {
+            newDataCallback(data);
+            //   }
+            //   frameCount++;
 
-            if (frameCount % 5 === 0) {
-              newDataCallback(data);
-            }
+            // zlib.deflateRaw(Buffer.from(buffer), (err, compData) => {
+            //   const compressedData = compData.toString("base64");
+            //   let data = {
+            //     data: compressedData,
+            //     timestamp: timestamp,
+            //     codedWidth: codedWidth,
+            //     codedHeight: codedHeight,
+            //     format: format,
+            //     frameCount: frameCount,
+            //   };
 
-            // console.log("procressor", data);
-            videoFrame.close();
-            frameCount++;
-
-            console.log();
+            //   newDataCallback(data);
+            // });
           }
-        });
+          frameCount++;
+          videoFrame.close();
+
+          // console.log("procressor", data);
+        }
+        return;
+        // });
       },
     });
     videoTrackProcessor.readable.pipeTo(videoConsumer);
+    console.log(TAG, "Started");
   };
 
   const stopProcressor = () => {
     recording.current = false;
+    console.log(TAG, "Stopped");
   };
 
   return {

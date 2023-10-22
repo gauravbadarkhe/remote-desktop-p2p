@@ -52,10 +52,11 @@ export const useUserMedia = ({ constraints, mimeType, timeSlice = 200 }) => {
     setStatus("RECORDING_REQUESTED");
   };
 
-  const stopStreamingData = async () => {
+  const stopStreamingData = () => {
     // await stopEncoding();
 
     stopProcressor();
+    return;
   };
 
   const stopStreamingData_old = () => {

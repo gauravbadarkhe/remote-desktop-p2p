@@ -20,9 +20,11 @@
     "react-packed-grid": "^2.1.1",
     "react-player": "^2.13.0",
     "react-scripts": "5.0.1",
+    "react-zlib-js": "^1.0.5",
     "readable-stream": "^4.4.2",
     "styled-components": "^5.3.11",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "zlib": "^1.0.5"
   },
   "scripts": {
     "start": "react-scripts start",

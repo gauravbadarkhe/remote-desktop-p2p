@@ -15,8 +15,8 @@ module.exports = class RoomUtils extends EventEmitter {
     return new Promise(async (resolve, reject) => {
       this._RoomId = roomId ? b4a.from(roomId, "hex") : crypto.randomBytes(32);
       const options = {
-        client: roomId !== undefined ? true : false,
-        server: roomId === undefined ? true : false,
+        client: true,
+        server: true,
       };
       const discovery = this.swarm.join(this._RoomId, options);
 
@@ -33,6 +33,14 @@ module.exports = class RoomUtils extends EventEmitter {
 
   closeRoom() {
     this.swarm.destroy();
+  }
+  formatBytes(a, b = 2) {
+    if (!+a) return "0 Bytes";
+    const c = 0 > b ? 0 : b,
+      d = Math.floor(Math.log(a) / Math.log(1024));
+    return `${parseFloat((a / Math.pow(1024, d)).toFixed(c))} ${
+      ["Bytes", "KiB", "MiB", "GiB", "TiB", "PiB", "EiB", "ZiB", "YiB"][d]
+    }`;
   }
 
   initEvents() {
@@ -51,7 +59,10 @@ module.exports = class RoomUtils extends EventEmitter {
         this.emit("close", remoteId);
       });
       conn.on("data", (data) => {
-        // console.log(`${remoteId}: New data`, );
+        console.log(
+          `${remoteId}: New data`,
+          this.formatBytes(Buffer.byteLength(data))
+        );
         this.emit("data", { remoteId: remoteId, data: data });
       });
     });
