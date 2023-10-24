@@ -25,19 +25,21 @@ function GridItemPlaceholder({ children, id }) {
 }
 
 export function VideoView() {
-  const { initRoom, roomId, peers, leaveRoom, sendToAllPeers } = useRoom();
-
+  const { roomId, peers, sendToAllPeers } = useRoom();
   const {
     stream,
-    error,
-    latestStreamData,
     stopStreamingData,
     startStream,
     startStreamingData,
-    status,
     cancelStream,
   } = useUserMedia({
-    constraints: { audio: true, video: true },
+    constraints: {
+      audio: {
+        noiseSuppression: true,
+        echoCancellation: true, // Optional: Enable echo cancellation
+      },
+      video: true,
+    },
     mimeType: "video/webm;codecs=vp9,opus",
     timeSlice: 200,
   });
@@ -58,12 +60,15 @@ export function VideoView() {
   }, [roomId]);
 
   useEffect(() => {
-    startStreamingData((newData) => {
-      sendToAllPeers(cenc.encode(cenc.json, newData));
-    });
-    return async () => {
-      await stopStreamingData();
-    };
+    if (stream) {
+      startStreamingData((newData) => {
+        sendToAllPeers(cenc.encode(cenc.json, newData));
+      });
+
+      return async () => {
+        await stopStreamingData();
+      };
+    }
   }, [stream]);
 
   //

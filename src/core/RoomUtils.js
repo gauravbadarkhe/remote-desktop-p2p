@@ -9,6 +9,7 @@ module.exports = class RoomUtils extends EventEmitter {
     this.swarm = new Hyperswarm();
     this.conns = [];
     this._RoomId = null;
+    this.logIt = false;
   }
 
   initRoom(roomId) {
@@ -21,7 +22,7 @@ module.exports = class RoomUtils extends EventEmitter {
       const discovery = this.swarm.join(this._RoomId, options);
 
       if (!roomId) await discovery.flushed();
-      console.log(
+      this.roomLog(
         roomId,
         options,
         `Joined Room ${b4a.toString(this._RoomId, "hex")}`,
@@ -47,7 +48,7 @@ module.exports = class RoomUtils extends EventEmitter {
     this.swarm.on("connection", (conn) => {
       const remoteId = b4a.toString(conn.remotePublicKey, "hex");
       this.emit("newconnection", remoteId);
-      console.log(`New Peer COnnected  :${remoteId}`, conn);
+      this.roomLog(`New Peer COnnected  :${remoteId}`, conn);
       this.conns.push(conn);
       conn.on("error", (err) => {
         this.conns.splice(this.conns.indexOf(conn), 1);
@@ -59,7 +60,7 @@ module.exports = class RoomUtils extends EventEmitter {
         this.emit("close", remoteId);
       });
       conn.on("data", (data) => {
-        console.log(
+        this.roomLog(
           `${remoteId}: New data`,
           this.formatBytes(Buffer.byteLength(data))
         );
@@ -69,13 +70,19 @@ module.exports = class RoomUtils extends EventEmitter {
   }
 
   sendDataToAllConnections(data) {
-    // console.log(
-    //   `Sending data to ${this.conns.length} conns`,
-    //   Buffer.byteLength(data)
-    // );
-    // console.log(data);
+    this.roomLog(
+      `Sending data to ${this.conns.length} conns`,
+      this.formatBytes(Buffer.byteLength(data))
+    );
+
     for (const conn of this.conns) {
       conn.write(data);
+    }
+  }
+
+  roomLog(...logs) {
+    if (this.logIt) {
+      this.roomLog("RoomUtils", ...logs);
     }
   }
 };

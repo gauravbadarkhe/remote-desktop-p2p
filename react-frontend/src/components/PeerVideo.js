@@ -1,3 +1,5 @@
+/* eslint-disable no-undef */
+
 import React, { useEffect, useRef, useState } from "react";
 import { useRoom } from "../hooks/RoomProvider";
 import { CODECS } from "../constants";
@@ -16,55 +18,94 @@ function PeerVideoComp({ localStream, remotePeerId, isLocal }) {
   const sourceBuffer = useRef();
   const TAG = `PeerVideo${remotePeerId ? "_P" : "_L"}`;
 
+  const handleAudioData = (decoded_data, writer) => {
+    const { format, sampleRate, numberOfFrames, numberOfChannels, timestamp } =
+      decoded_data;
+    const buffer = Buffer.from(decoded_data.data, "base64");
+
+    const audioData = new AudioData({
+      format,
+      sampleRate,
+      numberOfFrames,
+      numberOfChannels,
+      timestamp,
+      data: buffer,
+    });
+    writer.write(audioData);
+  };
+
+  const handleVideoData = (decoded_data, writer) => {
+    const { timestamp, codedWidth, codedHeight, format, frameCount } =
+      decoded_data;
+    const buffer = Buffer.from(decoded_data.data, "base64"); // zlib.inflateRawSync(Buffer.from(decoded_data.data, "base64"));
+
+    // eslint-disable-next-line no-undef
+    const newFrame = new VideoFrame(buffer, {
+      timestamp: timestamp,
+      codedWidth: codedWidth,
+      codedHeight: codedHeight,
+      format: format,
+    });
+
+    writer.write(newFrame);
+  };
+
   useEffect(() => {
     if (isLocal) {
       videoRef.current.srcObject = localStream;
     } else {
       if (videoRef.current) {
-        // setMediaSource(new MediaSource());
-        let lastUpdated = 1;
-
         // eslint-disable-next-line no-undef
-        const trackGenerator = new MediaStreamTrackGenerator({ kind: "video" });
-        const writer = trackGenerator.writable.getWriter();
+        const videoTrackGenerator = new MediaStreamTrackGenerator({
+          kind: "video",
+        });
+        // eslint-disable-next-line no-undef
+        const audioTrackGenerator = new MediaStreamTrackGenerator({
+          kind: "audio",
+        });
+        const videoWriter = videoTrackGenerator.writable.getWriter();
+        const audioWriter = audioTrackGenerator.writable.getWriter();
 
         addDataListerner(remotePeerId, ({ data, remoteId }) => {
           // console.time();
 
           const decoded_data = cenc.decode(cenc.json, data);
           // console.log("PEER", decoded_data);
-          const { timestamp, codedWidth, codedHeight, format, frameCount } =
-            decoded_data;
-          const buffer = Buffer.from(decoded_data.data, "base64"); // zlib.inflateRawSync(Buffer.from(decoded_data.data, "base64"));
+          if (decoded_data.type === "audio")
+            handleAudioData(decoded_data, audioWriter);
+          if (decoded_data.type === "video")
+            handleVideoData(decoded_data, videoWriter);
 
-          // eslint-disable-next-line no-undef
-          const newFrame = new VideoFrame(buffer, {
-            timestamp: timestamp,
-            codedWidth: codedWidth,
-            codedHeight: codedHeight,
-            format: format,
-          });
-
-          writer.write(newFrame);
           // console.timeEnd();
         });
 
         // writer.write(audioData);
-        const streamAfter = new MediaStream([trackGenerator]);
+        const streamAfter = new MediaStream([
+          videoTrackGenerator,
+          audioTrackGenerator,
+        ]);
         videoRef.current.srcObject = streamAfter;
+      } else {
+        console.log("Wierd But Video Ref is not populated");
       }
     }
 
     return () => {
       if (remotePeerId) removeDataListerner(remotePeerId);
     };
-  }, [isLocal, localStream, remotePeerId]);
+  }, []);
 
   return (
     <>
       <video
         className="peer-video"
         autoPlay
+        muted
+        onClick={(video) => {
+          if (videoRef.current) {
+            videoRef.current.muted = !videoRef.current.muted;
+          }
+        }}
         style={{
           width: "100%",
           height: "100%",
