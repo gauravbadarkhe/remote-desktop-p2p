@@ -1,7 +1,5 @@
 import { useState, useEffect, useRef } from "react";
 import { Buffer } from "buffer/";
-import { Muxer, ArrayBufferTarget, StreamTarget } from "webm-muxer";
-import { UseVideoEncoder } from "./UseVideoEncoder";
 import { useStreamProcressor } from "./UseStreamProcressor";
 
 export const useUserMedia = ({ constraints, mimeType, timeSlice = 200 }) => {
@@ -10,7 +8,6 @@ export const useUserMedia = ({ constraints, mimeType, timeSlice = 200 }) => {
   const [stream, setStream] = useState(null);
   const [error, setError] = useState(null);
   const mediaRecorder = useRef(null);
-  const { startEncoding, stopEncoding } = UseVideoEncoder({ stream: stream });
   const { startProcressor, stopProcressor } = useStreamProcressor({
     stream: stream,
   });
